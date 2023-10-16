@@ -1,15 +1,52 @@
 version: '3.1'
 services:
   stats-server:
+    build: stats/stats-server
+    image: stats-server-image
+    container_name: stats-server-container
     ports:
       - "9090:9090"
+    depends_on:
+      - stats-db
+    environment:
+      - SPRING_DATASOURCE_USERNAME=pgadmin
+      - SPRING_DATASOURCE_PASSWORD=pgadmin
+      - SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats
+      - DB_NAME=stats
 
   stats-db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine3.18
+    container_name: stats-db-container
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_DB=stats
+      - POSTGRES_USER=pgadmin
+      - POSTGRES_PASSWORD=pgadmin
 
   ewm-service:
+    build: main-service
+    image: ewm-service-image
+    container_name: ewm-service-container
     ports:
       - "8080:8080"
+    depends_on:
+      - ewm-db
+    environment:
+      - STATISTICS_SERVER_URL=http://stats-server:9090
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
+      - SPRING_DATASOURCE_USERNAME=pgadmin
+      - SPRING_DATASOURCE_PASSWORD=pgadmin
+      - SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - DB_NAME=ewm
 
   ewm-db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine3.18
+    container_name: ewm-db-container
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_DB=ewm
+      - POSTGRES_USER=pgadmin
+      - POSTGRES_PASSWORD=pgadmin
