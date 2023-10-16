@@ -12,22 +12,29 @@ import java.util.Set;
 
 @Repository
 public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> {
-    @Query("select new ru.practicum.ewm.stats.dto.ViewStatsResponseDto(" +
-            "   hit.app, " +
-            "   hit.uri, " +
+    @Query(
+            "select " +
+            "   new ru.practicum.ewm.stats.dto.ViewStatsResponseDto( " +
+            "       hit.app, " +
+            "       hit.uri,  " +
+            "       case when :unique = true " +
+            "           then count(distinct(hit.ip))" +
+            "           else count(hit.ip)  " +
+            "       end  " +
+            "            )" +
+            "from " +
+            "   EndpointHit hit  " +
+            "where " +
+            "   hit.timestamp between :start_date and :end_date " +
+            "   and (coalesce(:uris, null) is null or hit.uri in :uris)" +
+            "group by " +
+            "   hit.app," +
+            "   hit.uri " +
+            "order by " +
             "   case when :unique = true " +
             "       then count(distinct(hit.ip)) " +
             "       else count(hit.ip) " +
-            "   end " +
-            ") " +
-            "from EndpointHit hit " +
-            "where hit.timestamp between :start_date and :end_date" +
-            "   and (:uris is null or hit.uri in :uris) " +
-            "group by hit.app, hit.uri " +
-            "order by case when :unique = true " +
-            "                   then count(distinct(hit.ip)) " +
-            "                   else count(hit.ip) " +
-            "          end desc")
+            "   end desc")
     List<ViewStatsResponseDto> getStats(@Param("start_date") LocalDateTime startDate,
                                         @Param("end_date") LocalDateTime endDate,
                                         @Param("uris") Set<String> uris,

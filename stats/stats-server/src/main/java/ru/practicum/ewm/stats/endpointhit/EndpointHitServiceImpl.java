@@ -22,6 +22,7 @@ public class EndpointHitServiceImpl implements EndpointHitService {
 
     @Override
     public EndpointHitAnswerDto saveHit(EndpointHitRequestDto requestDto) {
+
         return endPointHitMapper.toDto(endpointHitRepository.save(endPointHitMapper.toEntity(requestDto)));
     }
 
