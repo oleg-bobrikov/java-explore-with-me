@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.ewm.stats.dto.EndpointHitAnswerDto;
+import ru.practicum.ewm.stats.dto.EndpointHitResponseDto;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 
@@ -22,8 +22,8 @@ public class StatsClient {
     @Value("${stats-server.url}")
     private final String serverUrl;
 
-    public ResponseEntity<EndpointHitAnswerDto> createHit(EndpointHitRequestDto endpointHitRequestDto) {
-        return restTemplate.postForEntity(serverUrl.concat("/hit"), endpointHitRequestDto, EndpointHitAnswerDto.class);
+    public ResponseEntity<EndpointHitResponseDto> createHit(EndpointHitRequestDto endpointHitRequestDto) {
+        return restTemplate.postForEntity(serverUrl.concat("/hit"), endpointHitRequestDto, EndpointHitResponseDto.class);
     }
 
     public ResponseEntity<ViewStatsResponseDto> getStats(LocalDateTime startDate, LocalDateTime endDate,

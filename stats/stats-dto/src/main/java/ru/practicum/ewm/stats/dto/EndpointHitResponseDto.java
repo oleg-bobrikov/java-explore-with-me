@@ -14,7 +14,7 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class EndpointHitAnswerDto {
+public class EndpointHitResponseDto {
     private Long id;
     private String app;
     private String uri;

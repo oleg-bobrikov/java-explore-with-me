@@ -3,7 +3,7 @@ package ru.practicum.ewm.stats.endpointhit;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.stats.dto.EndpointHitAnswerDto;
+import ru.practicum.ewm.stats.dto.EndpointHitResponseDto;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 
@@ -21,7 +21,7 @@ public class EndpointHitServiceImpl implements EndpointHitService {
 
 
     @Override
-    public EndpointHitAnswerDto saveHit(EndpointHitRequestDto requestDto) {
+    public EndpointHitResponseDto saveHit(EndpointHitRequestDto requestDto) {
 
         return endPointHitMapper.toDto(endpointHitRepository.save(endPointHitMapper.toEntity(requestDto)));
     }
