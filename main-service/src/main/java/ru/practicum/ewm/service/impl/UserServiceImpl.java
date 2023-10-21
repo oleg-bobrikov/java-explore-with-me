@@ -22,18 +22,18 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto create(NewUserDto requestDto) {
+    public UserDto adminAddUser(NewUserDto requestDto) {
         return userMapper.toDto(userRepository.save(userMapper.toModel(requestDto)));
     }
 
     @Override
-    public void deleteById(long userId) {
+    public void adminRemoveUser(long userId) {
         User user = findUserById(userId);
         userRepository.delete(user);
     }
 
     @Override
-    public List<UserDto> findUsersByIds(Set<Long> ids, int from, int size) {
+    public List<UserDto> adminGetUsers(Set<Long> ids, int from, int size) {
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         if (ids == null) {
             return userMapper.toDto(userRepository.findAll(page).getContent());
@@ -41,8 +41,8 @@ public class UserServiceImpl implements UserService {
             return userMapper.toDto(userRepository.findByIdIn(ids, page));
         }
     }
-
-    private User findUserById(long id) {
+    @Override
+    public User findUserById(long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(
                         String.format("No user found with identifier %s", id)));

@@ -19,23 +19,24 @@ public class CategoryAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto create(@RequestBody @Valid NewCategoryDto requestDto) {
-        log.info("Attempt to save category with name {}", requestDto.getName());
-        return categoryService.create(requestDto);
+    public CategoryDto adminAddCategory(@RequestBody @Valid NewCategoryDto newCategoryDto) {
+        log.info("Attempt to save category with name {}", newCategoryDto.getName());
+        return categoryService.adminAddCategory(newCategoryDto);
     }
 
     @PatchMapping(path = "/{catId}")
     @ResponseStatus(HttpStatus.OK)
-    public CategoryDto update(@RequestBody @Valid NewCategoryDto requestDto,
+    public CategoryDto adminUpdateCategory(@RequestBody @Valid NewCategoryDto requestDto,
                               @PathVariable long catId) {
         log.info("Attempt to update the name of the category with identifier {} to {}", catId, requestDto.getName());
-        return categoryService.update(catId, requestDto);
+        return categoryService.adminUpdateCategory(catId, requestDto);
     }
+
 
     @DeleteMapping(path = "/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable long catId) {
+    public void adminRemoveCategory(@PathVariable long catId) {
         log.info("Attempt to delete category with identifier {}", catId);
-        categoryService.deleteById(catId);
+        categoryService.adminRemoveCategory(catId);
     }
 }

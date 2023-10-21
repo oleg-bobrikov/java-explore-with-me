@@ -21,35 +21,36 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
-    public CategoryDto create(NewCategoryDto requestDto) {
+    public CategoryDto adminAddCategory(NewCategoryDto requestDto) {
         return categoryMapper.toDto(categoryRepository.save(categoryMapper.toModel(requestDto)));
     }
 
     @Override
-    public List<CategoryDto> findAll(int from, int size) {
+    public List<CategoryDto> getCategories(int from, int size) {
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         return categoryMapper.toDto(categoryRepository.findAll(page).getContent());
     }
 
     @Override
-    public CategoryDto findById(long id) {
+    public CategoryDto getCategory(long id) {
         return categoryMapper.toDto(findCategoryById(id));
     }
 
     @Override
-    public void deleteById(long id) {
+    public void adminRemoveCategory(long id) {
         Category category = findCategoryById(id);
         categoryRepository.delete(category);
     }
 
     @Override
-    public CategoryDto update(long id, NewCategoryDto requestDto) {
+    public CategoryDto adminUpdateCategory(long id, NewCategoryDto requestDto) {
         Category category = findCategoryById(id);
         Category updatedCategory = category.toBuilder().name(requestDto.getName()).build();
         return categoryMapper.toDto(categoryRepository.save(updatedCategory));
     }
 
-    private Category findCategoryById(long id) {
+    @Override
+    public Category findCategoryById(long id) {
         return categoryRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(
                         String.format("No category found with identifier %s", id)));

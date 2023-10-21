@@ -25,16 +25,16 @@ public class CategoryPublicController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<CategoryDto> findAll(@RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
+    public List<CategoryDto> getCategories(@RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                      @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size) {
         log.info("Get all categories with page from = {} and size = {}", from , size);
-        return categoryService.findAll(from, size);
+        return categoryService.getCategories(from, size);
     }
 
     @GetMapping(path = "/{catId}")
     @ResponseStatus(HttpStatus.OK)
-    public CategoryDto findById(@PathVariable long catId) {
+    public CategoryDto getCategory(@PathVariable long catId) {
         log.info("Get category by id {}", catId);
-        return categoryService.findById(catId);
+        return categoryService.getCategory(catId);
     }
 }

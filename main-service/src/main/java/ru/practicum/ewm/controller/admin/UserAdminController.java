@@ -26,24 +26,24 @@ public class UserAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@RequestBody @Valid NewUserDto requestDto) {
+    public UserDto adminAddUser(@RequestBody @Valid NewUserDto requestDto) {
         log.info("Attempt to save user with email {} and name {}", requestDto.getEmail(), requestDto.getName());
-        return userService.create(requestDto);
+        return userService.adminAddUser(requestDto);
     }
 
     @DeleteMapping(path = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable long userId) {
+    public void adminRemoveUser(@PathVariable long userId) {
         log.info("Attempt to delete user with identifier {}", userId);
-        userService.deleteById(userId);
+        userService.adminRemoveUser(userId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> findUsersByIds(@RequestParam(required = false) Set<Long> ids,
+    public List<UserDto> adminGetUsers(@RequestParam(required = false) Set<Long> ids,
                                      @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                      @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size) {
         log.info("Get all users with by ids = {}, page from = {}, size = {}", ids, from , size);
-        return userService.findUsersByIds(ids, from, size);
+        return userService.adminGetUsers(ids, from, size);
     }
 }
