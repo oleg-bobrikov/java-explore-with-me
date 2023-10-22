@@ -1,5 +1,6 @@
 package ru.practicum.ewm.model;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.exception.ParticipantRequestValidationException;
 import ru.practicum.ewm.repository.ParticipationRequestRepository;
@@ -7,8 +8,13 @@ import ru.practicum.ewm.repository.ParticipationRequestRepository;
 import javax.persistence.PostPersist;
 
 @Service
+@RequiredArgsConstructor
 public class ParticipationRequestListener {
     private ParticipationRequestRepository requestRepository;
+
+    public ParticipationRequestListener(ParticipationRequestRepository requestRepository) {
+        this.requestRepository = requestRepository;
+    }
 
     @PostPersist
     public void postPersist(Object entity) {
