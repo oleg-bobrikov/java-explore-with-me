@@ -21,7 +21,7 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 @Slf4j
 @RequestMapping(path = "/admin/users")
 @RequiredArgsConstructor
-public class UserAdminController {
+public class AdminUserController {
     private final UserService userService;
 
     @PostMapping

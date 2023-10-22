@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.dto.CategoryDto;
 import ru.practicum.ewm.dto.NewCategoryDto;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
@@ -26,33 +28,28 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryDto> getCategories(int from, int size) {
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         return categoryMapper.toDto(categoryRepository.findAll(page).getContent());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryDto getCategory(long id) {
-        return categoryMapper.toDto(findCategoryById(id));
+        return categoryMapper.toDto(categoryRepository.findCategoryById(id));
     }
 
     @Override
     public void adminRemoveCategory(long id) {
-        Category category = findCategoryById(id);
+        Category category = categoryRepository.findCategoryById(id);
         categoryRepository.delete(category);
     }
 
     @Override
     public CategoryDto adminUpdateCategory(long id, NewCategoryDto requestDto) {
-        Category category = findCategoryById(id);
+        Category category = categoryRepository.findCategoryById(id);
         Category updatedCategory = category.toBuilder().name(requestDto.getName()).build();
         return categoryMapper.toDto(categoryRepository.save(updatedCategory));
-    }
-
-    @Override
-    public Category findCategoryById(long id) {
-        return categoryRepository.findById(id).orElseThrow(
-                () -> new NotFoundException(
-                        String.format("No category found with identifier %s", id)));
     }
 }

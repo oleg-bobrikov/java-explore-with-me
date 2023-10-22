@@ -1,4 +1,4 @@
-package ru.practicum.ewm.controller;
+package ru.practicum.ewm.exception;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.practicum.ewm.dto.ApiError;
-import ru.practicum.ewm.exception.NotFoundException;
 
 import java.util.Collections;
 
@@ -26,9 +25,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFoundException(NotFoundException exception) {
+    public ResponseEntity<ApiError> handle(NotFoundException exception) {
         ApiError apiError = getApiError(exception, HttpStatus.NOT_FOUND);
         log.debug("NotFoundException {}", exception.getMessage(), exception);
+        return new ResponseEntity<>(apiError, apiError.getStatus());
+    }
+
+    @ExceptionHandler(ParticipantRequestValidationException.class)
+    public ResponseEntity<ApiError> handle(ParticipantRequestValidationException exception) {
+        ApiError apiError = getApiError(exception, HttpStatus.CONFLICT);
+        log.debug("ParticipantRequestValidationException {}", exception.getMessage(), exception);
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
 

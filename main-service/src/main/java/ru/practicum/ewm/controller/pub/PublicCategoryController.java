@@ -19,7 +19,7 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 @Slf4j
 @RequestMapping(path = "/categories")
 @RequiredArgsConstructor
-public class CategoryPublicController {
+public class PublicCategoryController {
     private final CategoryService categoryService;
 
 

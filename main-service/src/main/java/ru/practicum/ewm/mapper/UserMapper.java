@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.ewm.dto.NewUserDto;
 import ru.practicum.ewm.dto.UserDto;
+import ru.practicum.ewm.dto.UserShortDto;
 import ru.practicum.ewm.model.User;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface UserMapper {
 
     @Mapping(target = "id", expression = "java(null)")
     User toModel(NewUserDto userDto);
+
+    UserShortDto toShortDto(User user);
 }

@@ -4,6 +4,6 @@ import lombok.RequiredArgsConstructor;
 import ru.practicum.ewm.service.EventService;
 
 @RequiredArgsConstructor
-public class EventPublicController {
+public class PublicEventController {
     private final EventService eventService;
 }

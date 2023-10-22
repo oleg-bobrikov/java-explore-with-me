@@ -35,11 +35,9 @@ public class Event {
     @Column(name = "event_date", columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private LocalDateTime eventDate;
 
-    @Column(name = "lat", nullable = false)
-    private float lat;
-
-    @Column(name = "lon", nullable = false)
-    private float lon;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id", referencedColumnName = "id", nullable = false)
+    private Location location;
 
     @Column(name = "paid")
     private boolean paid;
