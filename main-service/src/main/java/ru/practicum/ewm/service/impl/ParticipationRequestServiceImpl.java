@@ -28,7 +28,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
     @Override
     @Transactional(rollbackFor = ParticipantRequestValidationException.class)
-    public ParticipationRequestDto participantAddRequest(long userId, long eventId) {
+    public ParticipationRequestDto addRequest(long userId, long eventId) {
         User requester = userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
         if (requester.equals(event.getInitiator())) {
@@ -50,8 +50,17 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
-    public List<ParticipationRequestDto> participantGetRequests(long userId) {
+    public List<ParticipationRequestDto> getRequests(long userId) {
         User requester = userRepository.findUserById(userId);
-        return (requestMapper.toDto(requestRepository.findAllByRequester(requester)));
+        return requestMapper.toDto(requestRepository.findAllByRequester(requester));
+    }
+
+    @Override
+    public ParticipationRequestDto cancelRequest(long userId, long requestId) {
+        User requester = userRepository.findUserById(userId);
+        ParticipationRequest request = requestRepository.findRequestByIdAndRequester(requestId, requester);
+        ParticipationRequest canceled = request.toBuilder().status(EventState.CANCELED).build();
+
+        return requestMapper.toDto(requestRepository.save(canceled));
     }
 }

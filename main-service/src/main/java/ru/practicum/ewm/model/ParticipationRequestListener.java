@@ -18,8 +18,11 @@ public class ParticipationRequestListener {
 
         ParticipationRequest request = (ParticipationRequest) entity;
         int participantLimit = request.getEvent().getParticipantLimit();
+        if (participantLimit == 0 || request.getStatus().equals(EventState.CANCELED)) {
+            return;
+        }
 
-        if (participantLimit != 0 && participantLimit < requestRepository.countByEvent(request.getEvent())) {
+        if (participantLimit < requestRepository.countParticipantsByEvent(request.getEvent())) {
             throw new ParticipantRequestValidationException("Participant limit exceeded.");
         }
     }
