@@ -5,16 +5,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.*;
-import ru.practicum.ewm.exception.WrongStateException;
+import ru.practicum.ewm.exception.*;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
 
-import ru.practicum.ewm.model.EventState;
+import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
+import ru.practicum.ewm.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.EventService;
 
@@ -30,6 +31,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final LocationMapper locationMapper;
     private final UserRepository userRepository;
+    private final ParticipationRequestRepository requestRepository;
 
     @Override
     public EventFullDto initiatorAddEvent(long userId, NewEventDto newEventDto) {
@@ -44,8 +46,8 @@ public class EventServiceImpl implements EventService {
     public EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventUserRequest updateEventUserRequest) {
         userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
-        if (event.getState() == EventState.PUBLISHED) {
-            throw new WrongStateException("Only pending or canceled events can be changed for event with id = " + eventId);
+        if (event.getState() == Event.State.PUBLISHED) {
+            throw new WrongStateException("Only pending or canceled events can be changed");
         }
         // Immutable objects are used
         Event updatedEvent = applyPatch(event, updateEventUserRequest);
@@ -58,6 +60,56 @@ public class EventServiceImpl implements EventService {
         return eventRepository.findByInitiatorId(userId, page).getContent().stream()
                 .map(eventMapper::toEventShortDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public EventShortDto initiatorGetEvent(long userId, long eventId) {
+        return eventMapper.toEventShortDto(eventRepository.findByInitiatorIdAndId(userId, eventId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Event with ID %s not found for user with ID %s", eventId, userId))));
+
+    }
+
+    @Override
+    public List<ParticipationRequestDto> initiatorGetEventRequests(long initiatorId, long eventId) {
+        List<ParticipationRequestDto> requestDtoList = requestRepository
+                .findAllByInitiatorIdAndEventId(initiatorId, eventId);
+        if (requestDtoList.isEmpty()) {
+            throw new NotFoundException("No participation requests found for the event with ID: " + eventId);
+        }
+        return requestDtoList;
+    }
+
+    @Override
+    public EventRequestStatusUpdateRequest initiatorChangeRequestStatus(long userId, long eventId,
+                                                                        EventRequestStatusUpdateRequest changeRequest) {
+        userRepository.findUserById(userId);
+        Event event = eventRepository.findEventById(eventId);
+        int participantLimit = event.getParticipantLimit();
+
+        if (participantLimit == 0 || !event.getRequestModeration()) {
+            throw new BadRequestException("Change request confirmation is not required.");
+        }
+
+        if (event.getState() != Event.State.PENDING) {
+            throw new ConflictException("The event must be in the PENDING state.");
+        }
+        if (changeRequest.getStatus().equals(ParticipationRequest.Status.CONFIRMED)) {
+            int totalParticipants = requestRepository.countParticipantsByEvent(event);
+            if (participantLimit >= totalParticipants) {
+                throw new ConflictException("The participation requests limit has been reached.");
+            }
+        }
+
+        for (long requestId : changeRequest.getRequestIds()) {
+            ParticipationRequest request = requestRepository.findRequestById(requestId);
+            try {
+//                ParticipationRequest saved = request.toBuilder().status().build();
+
+            } catch (ParticipantRequestValidationException ex) {
+            }
+        }
+        return null;
     }
 
     private Event applyPatch(Event event, UpdateEventUserRequest dto) {
@@ -96,8 +148,17 @@ public class EventServiceImpl implements EventService {
         }
 
         if (dto.getStateAction() != null) {
-            eventBuilder.state(dto.getStateAction());
+            switch (dto.getStateAction()) {
+                case SEND_TO_REVIEW:
+                    eventBuilder.state(Event.State.PENDING);
+                    break;
+                case CANCEL_REVIEW:
+                    eventBuilder.state(Event.State.CANCELED);
+                    break;
+                default:
+            }
         }
+
 
         if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
             eventBuilder.title(dto.getTitle());

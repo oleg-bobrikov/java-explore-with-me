@@ -11,8 +11,6 @@ import java.time.LocalDateTime;
         types = { Event.class }
 )
 public interface EventShortProjection {
-    String getDescription();
-
     String getAnnotation();
 
     Category getCategory();
@@ -26,5 +24,4 @@ public interface EventShortProjection {
     boolean getPaid();
 
     String getTitle();
-
 }

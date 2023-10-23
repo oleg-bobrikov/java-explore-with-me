@@ -19,21 +19,21 @@ public class ParticipantRequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto participantAddRequest(@PathVariable long userId, @RequestParam long eventId) {
-        log.info("User with id = {} is adding a request for event with id = {}", userId, eventId);
+        log.info("User ID: {} is adding a request for event ID: {}", userId, eventId);
         return service.addRequest(userId, eventId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> participantGetRequests(@PathVariable long userId) {
-        log.info("User with id = {} is getting requests", userId);
+        log.info("User ID {} is getting requests", userId);
         return service.getRequests(userId);
     }
 
     @PatchMapping("/{requestId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto participantCancelRequest(@PathVariable long userId, @PathVariable long requestId) {
-        log.info("User with id = {} is canceling request with id = {}", userId, requestId);
+        log.info("User ID: {} is canceling request ID: {}", userId, requestId);
         return service.cancelRequest(userId, requestId);
     }
 }

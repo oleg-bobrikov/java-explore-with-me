@@ -7,8 +7,12 @@ import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.projection.EventShortProjection;
 
+import java.util.Optional;
+
 public interface EventRepository extends JpaRepository<Event, Long> {
     Page<EventShortProjection> findByInitiatorId(long userId, Pageable page);
+
+    Optional<EventShortProjection> findByInitiatorIdAndId(long userId, long id);
 
     default Event findEventById(long id) {
         return findById(id).orElseThrow(

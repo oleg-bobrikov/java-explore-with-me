@@ -33,9 +33,15 @@ public class ParticipationRequest {
     @ToString.Exclude
     private User requester;
 
-    @Column(name = "state", length = 16)
+    @Column(name = "status", length = 16)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private EventState status = EventState.PENDING;
+    private Status status;
+
+    public enum  Status {
+        PENDING,
+        CANCELED,
+        CONFIRMED,
+        REJECTED
+    }
 }
 

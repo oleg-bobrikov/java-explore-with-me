@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.practicum.ewm.dto.validator.LocalDateTimeIsAfter2Hours;
-import ru.practicum.ewm.model.EventState;
+import ru.practicum.ewm.model.ParticipationRequest;
 
 import java.time.LocalDateTime;
 
@@ -24,5 +24,5 @@ public class ParticipationRequestDto {
     private long event;
     private long id;
     private long requester;
-    private EventState status;
+    private ParticipationRequest.Status status;
 }

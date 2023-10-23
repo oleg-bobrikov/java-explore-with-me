@@ -6,7 +6,6 @@ import org.mapstruct.Named;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
-import ru.practicum.ewm.model.EventState;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.projection.EventShortProjection;
 
@@ -29,8 +28,8 @@ public interface EventMapper {
     EventShortDto toEventShortDto(EventShortProjection event);
 
     @Named("toState")
-    default EventState toState(NewEventDto newEventDto) {
-        return newEventDto.isRequestModeration() ? EventState.PENDING : EventState.PUBLISHED;
+    default Event.State toState(NewEventDto newEventDto) {
+        return newEventDto.isRequestModeration() ? Event.State.PENDING : Event.State.PUBLISHED;
     }
 
 }

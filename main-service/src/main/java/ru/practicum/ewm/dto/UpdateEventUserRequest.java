@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.dto.validator.LocalDateTimeIsAfter2Hours;
-import ru.practicum.ewm.model.EventState;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -43,8 +42,13 @@ public class UpdateEventUserRequest {
     private Integer participantLimit;
 
     private Boolean requestModeration;
-    private EventState stateAction;
+    private StateAction stateAction;
 
     @Length(min = 3, max = 120, message = "title must be at least 3 and maximum 120 characters long")
     private String title;
+
+    public enum StateAction {
+        SEND_TO_REVIEW,
+        CANCEL_REVIEW
+    }
 }

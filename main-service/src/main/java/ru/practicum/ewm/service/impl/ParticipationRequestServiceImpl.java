@@ -7,7 +7,6 @@ import ru.practicum.ewm.dto.ParticipationRequestDto;
 import ru.practicum.ewm.exception.ParticipantRequestValidationException;
 import ru.practicum.ewm.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.model.Event;
-import ru.practicum.ewm.model.EventState;
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.EventRepository;
@@ -35,11 +34,11 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             throw new ParticipantRequestValidationException("The event initiator cannot add a participation request to their own event.");
         }
 
-        if (!event.getState().equals(EventState.PUBLISHED)) {
+        if (!event.getState().equals(Event.State.PUBLISHED)) {
             throw new ParticipantRequestValidationException("Participation in an unpublished event is prohibited.");
         }
 
-        EventState status = event.getRequestModeration() ? EventState.PENDING : EventState.PUBLISHED;
+        ParticipationRequest.Status status = event.getRequestModeration() ? ParticipationRequest.Status.PENDING : ParticipationRequest.Status.CONFIRMED;
         ParticipationRequest request = ParticipationRequest.builder()
                 .requester(requester)
                 .event(event)
@@ -59,7 +58,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public ParticipationRequestDto cancelRequest(long userId, long requestId) {
         User requester = userRepository.findUserById(userId);
         ParticipationRequest request = requestRepository.findRequestByIdAndRequester(requestId, requester);
-        ParticipationRequest canceled = request.toBuilder().status(EventState.CANCELED).build();
+        ParticipationRequest canceled = request.toBuilder().status(ParticipationRequest.Status.CANCELED).build();
 
         return requestMapper.toDto(requestRepository.save(canceled));
     }

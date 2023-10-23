@@ -2,6 +2,8 @@ package ru.practicum.ewm.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import ru.practicum.ewm.dto.ParticipationRequestDto;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.model.ParticipationRequest;
@@ -11,8 +13,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
-    @Query("select count(event) from Event event where event.state != ru.practicum.ewm.model.EventState.CANCELED")
-    int countParticipantsByEvent(Event event);
+    @Query("select " +
+            "   count(request)  as requests " +
+            "from " +
+            "   ParticipationRequest request " +
+            "where " +
+            "   request.event = :event and request.status = 'CONFIRMED' ")
+    int countParticipantsByEvent(@Param("event") Event event);
 
     List<ParticipationRequest> findAllByRequester(User requester);
 
@@ -23,4 +30,23 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
                 () -> new NotFoundException(
                         String.format("No participation request found with id %s and requester_id %s", id, requester.getId())));
     }
+
+    default ParticipationRequest findRequestById(long id) {
+        return findById(id).orElseThrow(
+                () -> new NotFoundException(
+                        String.format("No participation request found with id %s", id)));
+    }
+
+
+    @Query("select " +
+            "   request.created as created, " +
+            "   request.event.id as event, " +
+            "   request.id as id, " +
+            "   request.status as status " +
+            "from " +
+            "   ParticipationRequest as request " +
+            "where " +
+            "   request.event.initiator.id = :initiatorId and request.event.id = :eventId")
+    List<ParticipationRequestDto> findAllByInitiatorIdAndEventId(@Param("initiatorId") long initiatorId,
+                                                                 @Param("eventId") long eventId);
 }

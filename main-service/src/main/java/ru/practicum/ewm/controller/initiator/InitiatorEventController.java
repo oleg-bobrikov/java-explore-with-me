@@ -8,10 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.dto.EventFullDto;
-import ru.practicum.ewm.dto.EventShortDto;
-import ru.practicum.ewm.dto.NewEventDto;
-import ru.practicum.ewm.dto.UpdateEventUserRequest;
+import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.service.EventService;
 
 import javax.validation.Valid;
@@ -45,9 +42,9 @@ public class InitiatorEventController {
 
     @PatchMapping(path = "/{eventId}")
     @ResponseStatus(HttpStatus.OK)
-    public EventFullDto initiatorAddEvent(@PathVariable long userId,
-                                          @PathVariable long eventId,
-                                          @RequestBody @Valid UpdateEventUserRequest updateEventUserRequest) {
+    public EventFullDto initiatorUpdateEvent(@PathVariable long userId,
+                                             @PathVariable long eventId,
+                                             @RequestBody @Valid UpdateEventUserRequest updateEventUserRequest) {
         try {
             String json = objectMapper.writeValueAsString(updateEventUserRequest);
             log.info("Initiator update event: {}", json);
@@ -63,10 +60,43 @@ public class InitiatorEventController {
     public List<EventShortDto> initiatorGetEvents(@PathVariable long userId,
                                                   @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                                   @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size) {
-        log.info("Get all events by user with id = {}, page from = {}, size = {}", userId, from, size);
+        log.info("Get all events by user ID: {}, page from = {}, size = {}", userId, from, size);
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         return eventService.initiatorGetEvents(userId, page);
     }
 
+    @GetMapping(path = " /{eventId}")
+    @ResponseStatus(HttpStatus.OK)
+    public EventShortDto initiatorGetEvent(@PathVariable long userId, @PathVariable long eventId) {
+        log.info("Get event by user ID: {}, event ID: {}", userId, eventId);
+        return eventService.initiatorGetEvent(userId, eventId);
+    }
 
+    @GetMapping(path = " /{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ParticipationRequestDto> initiatorGetEventRequests(@PathVariable long userId, @PathVariable long eventId) {
+        log.info("Get event requests by user ID: {}, event ID: {}", userId, eventId);
+        return eventService.initiatorGetEventRequests(userId, eventId);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public EventRequestStatusUpdateRequest initiatorChangeRequestStatus(
+            @PathVariable long userId,
+            @PathVariable long eventId,
+            @RequestBody @Valid EventRequestStatusUpdateRequest changeRequest) {
+        logChangeRequestProcessing(userId, eventId, changeRequest);
+        return eventService.initiatorChangeRequestStatus(userId, eventId, changeRequest);
+    }
+
+    private void logChangeRequestProcessing(long userId, long eventId, Object object) {
+        try {
+            String json = objectMapper.writeValueAsString(object);
+            String logMessage = String.format("Initiator ID: %d for event ID: %d is processing change request: %s",
+                    userId, eventId, json);
+            log.info(logMessage);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize object to JSON: {}", e.getLocalizedMessage());
+        }
+    }
 }

@@ -53,8 +53,7 @@ public class Event {
 
     @Column(name = "state", length = 16)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private EventState state = EventState.PENDING;
+    private State state = State.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiator_id")
@@ -64,5 +63,11 @@ public class Event {
     @Column(name = "published_on", columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     @CreationTimestamp
     private LocalDateTime publishedOn;
+
+    public enum State {
+        PENDING,
+        PUBLISHED,
+        CANCELED
+    }
 }
 

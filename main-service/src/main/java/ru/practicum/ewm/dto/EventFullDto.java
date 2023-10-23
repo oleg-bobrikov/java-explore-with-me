@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import ru.practicum.ewm.model.EventState;
+import ru.practicum.ewm.model.Event;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +38,7 @@ public class EventFullDto {
     private LocalDateTime publishedOn;
 
     private boolean requestModeration = true;
-    private EventState state;
+    private Event.State state;
     private String title;
     private long views;
 }
