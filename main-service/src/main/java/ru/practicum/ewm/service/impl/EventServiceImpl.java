@@ -11,7 +11,6 @@ import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
 
-import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
@@ -19,7 +18,9 @@ import ru.practicum.ewm.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.EventService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +44,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventUserRequest updateEventUserRequest) {
+    public EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventByInitiatorDto updateEventUserRequest) {
         userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
         if (event.getState() == Event.State.PUBLISHED) {
@@ -81,8 +82,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventRequestStatusUpdateRequest initiatorChangeRequestStatus(long userId, long eventId,
-                                                                        EventRequestStatusUpdateRequest changeRequest) {
+    public UpdateParticipationRequestByInitiatorDto initiatorChangeRequestStatus(long userId, long eventId,
+                                                                                 UpdateParticipationRequestByInitiatorDto changeRequest) {
         userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
         int participantLimit = event.getParticipantLimit();
@@ -94,7 +95,7 @@ public class EventServiceImpl implements EventService {
         if (event.getState() != Event.State.PENDING) {
             throw new ConflictException("The event must be in the PENDING state.");
         }
-        if (changeRequest.getStatus().equals(ParticipationRequest.Status.CONFIRMED)) {
+        if (changeRequest.getStatus().equals(UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED)) {
             int totalParticipants = requestRepository.countParticipantsByEvent(event);
             if (participantLimit >= totalParticipants) {
                 throw new ConflictException("The participation requests limit has been reached.");
@@ -102,17 +103,27 @@ public class EventServiceImpl implements EventService {
         }
 
         for (long requestId : changeRequest.getRequestIds()) {
-            ParticipationRequest request = requestRepository.findRequestById(requestId);
-            try {
-//                ParticipationRequest saved = request.toBuilder().status().build();
-
-            } catch (ParticipantRequestValidationException ex) {
-            }
+             requestRepository.findRequestById(requestId);
         }
         return null;
     }
 
-    private Event applyPatch(Event event, UpdateEventUserRequest dto) {
+    @Override
+    public List<EventFullDto> findEvents(Map<String, Object> parameters) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public EventFullDto adminUpdateEvent(long eventId, UpdateEventByAdminDto changeRequestDto) {
+        return new EventFullDto();
+    }
+
+    @Override
+    public List<EventFullDto> adminFindEvents(Map<String, Object> parameters) {
+        return new ArrayList<>();
+    }
+
+    private Event applyPatch(Event event, UpdateEventByInitiatorDto dto) {
         Event.EventBuilder eventBuilder = event.toBuilder();
 
         if (dto.getAnnotation() != null && !dto.getAnnotation().isBlank()) {

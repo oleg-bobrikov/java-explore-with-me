@@ -13,7 +13,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/users/{userId}/requests")
 @RequiredArgsConstructor
-public class ParticipantRequestController {
+public class ParticipantParticipationRequestController {
     private final ParticipationRequestService service;
 
     @PostMapping

@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class EventRequestStatusUpdateRequest {
+public class UpdateParticipationRequestByInitiatorDto {
     @NotNull
     private List<Long> requestIds;
 

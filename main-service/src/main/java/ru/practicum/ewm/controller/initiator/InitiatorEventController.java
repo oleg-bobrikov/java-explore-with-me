@@ -32,7 +32,7 @@ public class InitiatorEventController {
     public EventFullDto initiatorAddEvent(@PathVariable long userId, @RequestBody @Valid NewEventDto newEventDto) {
         try {
             String json = objectMapper.writeValueAsString(newEventDto);
-            log.info("Initiator add event: {}", json);
+            log.info("Initiator is adding event: {}", json);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize object to JSON: {}", e.getLocalizedMessage());
         }
@@ -44,10 +44,10 @@ public class InitiatorEventController {
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto initiatorUpdateEvent(@PathVariable long userId,
                                              @PathVariable long eventId,
-                                             @RequestBody @Valid UpdateEventUserRequest updateEventUserRequest) {
+                                             @RequestBody @Valid UpdateEventByInitiatorDto updateEventUserRequest) {
         try {
             String json = objectMapper.writeValueAsString(updateEventUserRequest);
-            log.info("Initiator update event: {}", json);
+            log.info("Initiator is updating event: {}", json);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize object to JSON: {}", e.getLocalizedMessage());
         }
@@ -60,7 +60,7 @@ public class InitiatorEventController {
     public List<EventShortDto> initiatorGetEvents(@PathVariable long userId,
                                                   @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                                   @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size) {
-        log.info("Get all events by user ID: {}, page from = {}, size = {}", userId, from, size);
+        log.info("Initiator is getting all events by user ID: {}, page from = {}, size = {}", userId, from, size);
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         return eventService.initiatorGetEvents(userId, page);
     }
@@ -68,35 +68,34 @@ public class InitiatorEventController {
     @GetMapping(path = " /{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public EventShortDto initiatorGetEvent(@PathVariable long userId, @PathVariable long eventId) {
-        log.info("Get event by user ID: {}, event ID: {}", userId, eventId);
+        log.info("Initiator is getting event by user ID: {}, event ID: {}", userId, eventId);
         return eventService.initiatorGetEvent(userId, eventId);
     }
 
     @GetMapping(path = " /{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> initiatorGetEventRequests(@PathVariable long userId, @PathVariable long eventId) {
-        log.info("Get event requests by user ID: {}, event ID: {}", userId, eventId);
+        log.info("Initiator is getting participation event requests by user ID: {}, event ID: {}", userId, eventId);
         return eventService.initiatorGetEventRequests(userId, eventId);
     }
 
     @PatchMapping("/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
-    public EventRequestStatusUpdateRequest initiatorChangeRequestStatus(
+    public UpdateParticipationRequestByInitiatorDto initiatorChangeRequestStatus(
             @PathVariable long userId,
             @PathVariable long eventId,
-            @RequestBody @Valid EventRequestStatusUpdateRequest changeRequest) {
-        logChangeRequestProcessing(userId, eventId, changeRequest);
-        return eventService.initiatorChangeRequestStatus(userId, eventId, changeRequest);
-    }
+            @RequestBody @Valid UpdateParticipationRequestByInitiatorDto changeRequest) {
 
-    private void logChangeRequestProcessing(long userId, long eventId, Object object) {
         try {
-            String json = objectMapper.writeValueAsString(object);
+            String json = objectMapper.writeValueAsString(changeRequest);
             String logMessage = String.format("Initiator ID: %d for event ID: %d is processing change request: %s",
                     userId, eventId, json);
             log.info(logMessage);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize object to JSON: {}", e.getLocalizedMessage());
         }
+
+        return eventService.initiatorChangeRequestStatus(userId, eventId, changeRequest);
     }
+
 }

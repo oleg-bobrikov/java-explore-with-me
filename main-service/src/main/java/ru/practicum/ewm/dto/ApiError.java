@@ -1,6 +1,7 @@
 package ru.practicum.ewm.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.http.HttpStatus;
 
@@ -24,6 +25,11 @@ public class ApiError {
     private HttpStatus status;
 
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-	@Builder.Default
-	private LocalDateTime timestamp = LocalDateTime.now();
+    @Builder.Default
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    String path;
+
+    @JsonProperty("class")
+    String errorClass;
 }

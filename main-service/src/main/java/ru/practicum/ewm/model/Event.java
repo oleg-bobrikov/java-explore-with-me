@@ -69,5 +69,10 @@ public class Event {
         PUBLISHED,
         CANCELED
     }
+
+    public enum Sort {
+        EVENT_DATE,
+        VIEWS
+    }
 }
 

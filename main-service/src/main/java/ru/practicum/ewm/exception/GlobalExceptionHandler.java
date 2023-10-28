@@ -1,57 +1,58 @@
 package ru.practicum.ewm.exception;
 
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.practicum.ewm.dto.ApiError;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+@RequiredArgsConstructor
+public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
-    public ResponseEntity<ApiError> handle(Throwable exception) {
-        ApiError apiError = getApiError(exception, HttpStatus.INTERNAL_SERVER_ERROR);
-        log.debug("{} exception {}", exception.getClass(), exception.getMessage(), exception);
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handle(Throwable exception, HttpServletRequest httpServletRequest) {
+        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        return getApiError(exception, httpServletRequest, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handle(Exception exception, HttpServletRequest httpServletRequest) {
+        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        return getApiError(exception, httpServletRequest, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiError> handle(NotFoundException exception) {
-        ApiError apiError = getApiError(exception, HttpStatus.NOT_FOUND);
-        log.debug("NotFoundException {}", exception.getMessage(), exception);
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handle(NotFoundException exception, HttpServletRequest httpServletRequest) {
+        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        return getApiError(exception, httpServletRequest, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ParticipantRequestValidationException.class)
-    public ResponseEntity<ApiError> handle(ParticipantRequestValidationException exception) {
-        ApiError apiError = getApiError(exception, HttpStatus.CONFLICT);
-        log.debug("ParticipantRequestValidationException {}", exception.getMessage(), exception);
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handle(ParticipantRequestValidationException exception, HttpServletRequest httpServletRequest) {
+        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        return getApiError(exception, httpServletRequest, HttpStatus.CONFLICT);
     }
 
-    @Override
-    protected @NonNull ResponseEntity<Object> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex,
-                                                                           @NonNull HttpHeaders headers,
-                                                                           @NonNull HttpStatus status,
-                                                                           @NonNull WebRequest request) {
-        return super.handleMethodArgumentNotValid(ex, headers, status, request);
-    }
-
-    private ApiError getApiError(Throwable e, HttpStatus httpStatus) {
+    private ApiError getApiError(Throwable e, HttpServletRequest httpServletRequest, HttpStatus httpStatus) {
         return ApiError.builder()
                 .errors(Collections.singletonList(e.getMessage()))
                 .message(e.getLocalizedMessage())
                 .reason(getReason(e, httpStatus))
                 .status(httpStatus)
+                .path(httpServletRequest.getServletPath())
+                .errorClass(e.getClass().getName())
                 .build();
     }
 
@@ -67,5 +68,4 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 return String.valueOf(e.getCause());
         }
     }
-
 }
