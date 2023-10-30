@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.ParticipationRequestDto;
-import ru.practicum.ewm.exception.ParticipantRequestValidationException;
+import ru.practicum.ewm.exception.ParticipantRequestException;
 import ru.practicum.ewm.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.model.ParticipationRequest;
@@ -26,23 +26,32 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     private final ParticipationRequestMapper requestMapper;
 
     @Override
-    @Transactional(rollbackFor = ParticipantRequestValidationException.class)
+    @Transactional(rollbackFor = ParticipantRequestException.class)
     public ParticipationRequestDto addRequest(long userId, long eventId) {
         User requester = userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
+        if (!requestRepository.findAllByRequester(requester).isEmpty()) {
+            throw new ParticipantRequestException("It is forbidden to add a repeated request.");
+        }
+
         if (requester.equals(event.getInitiator())) {
-            throw new ParticipantRequestValidationException("The event initiator cannot add a participation request to their own event.");
+            throw new ParticipantRequestException("The event initiator cannot add a participation request to their own event.");
         }
 
         if (!event.getState().equals(Event.State.PUBLISHED)) {
-            throw new ParticipantRequestValidationException("Participation in an unpublished event is prohibited.");
+            throw new ParticipantRequestException("Participation in an unpublished event is prohibited.");
         }
 
-        ParticipationRequest.Status status = event.getRequestModeration() ? ParticipationRequest.Status.PENDING : ParticipationRequest.Status.CONFIRMED;
+        if (event.getParticipantLimit() != 0 && requestRepository.confirmedParticipantsByEvent(event) >= event.getParticipantLimit()) {
+            throw new ParticipantRequestException("The event has reached the limit of requests for participation.");
+        }
+
         ParticipationRequest request = ParticipationRequest.builder()
                 .requester(requester)
                 .event(event)
-                .status(status)
+                .status(event.getRequestModeration()
+                        ? ParticipationRequest.Status.PENDING
+                        : ParticipationRequest.Status.CONFIRMED)
                 .build();
 
         return requestMapper.toDto(requestRepository.save(request));

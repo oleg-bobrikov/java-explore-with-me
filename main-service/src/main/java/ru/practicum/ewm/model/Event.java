@@ -53,6 +53,7 @@ public class Event {
 
     @Column(name = "state", length = 16)
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private State state = State.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)

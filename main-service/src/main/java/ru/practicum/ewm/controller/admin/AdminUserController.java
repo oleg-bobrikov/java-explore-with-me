@@ -8,6 +8,7 @@ import ru.practicum.ewm.dto.NewUserDto;
 import ru.practicum.ewm.dto.UserDto;
 import ru.practicum.ewm.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -26,24 +27,35 @@ public class AdminUserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto adminAddUser(@RequestBody @Valid NewUserDto requestDto) {
+    public UserDto adminAddUser(@RequestBody @Valid NewUserDto requestDto,
+                                HttpServletRequest httpServletRequest) {
+
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Admin is adding user with email {} and name {}", requestDto.getEmail(), requestDto.getName());
+
         return userService.adminAddUser(requestDto);
     }
 
     @DeleteMapping(path = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void adminRemoveUser(@PathVariable long userId) {
+    public void adminRemoveUser(@PathVariable long userId, HttpServletRequest httpServletRequest) {
+
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Admin is removing user with identifier {}", userId);
+
         userService.adminRemoveUser(userId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> adminGetUsers(@RequestParam(required = false) Set<Long> ids,
-                                     @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
-                                     @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size) {
-        log.info("Admin is getting all users by ids = {}, page from = {}, size = {}", ids, from , size);
+                                       @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
+                                       @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
+                                       HttpServletRequest httpServletRequest) {
+
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        log.info("Admin is getting all users by ids = {}, page from = {}, size = {}", ids, from, size);
+
         return userService.adminGetUsers(ids, from, size);
     }
 }

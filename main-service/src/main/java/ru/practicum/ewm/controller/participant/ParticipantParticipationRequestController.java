@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.ParticipationRequestDto;
 import ru.practicum.ewm.service.ParticipationRequestService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -18,21 +19,29 @@ public class ParticipantParticipationRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto participantAddRequest(@PathVariable long userId, @RequestParam long eventId) {
-        log.info("User ID: {} is adding a request for event ID: {}", userId, eventId);
+    public ParticipationRequestDto participantAddRequest(@PathVariable long userId,
+                                                         @RequestParam long eventId,
+                                                         HttpServletRequest httpServletRequest) {
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        log.info("User ID: {} is adding a request to participate in event ID: {}", userId, eventId);
         return service.addRequest(userId, eventId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ParticipationRequestDto> participantGetRequests(@PathVariable long userId) {
+    public List<ParticipationRequestDto> participantGetRequests(@PathVariable long userId,
+                                                                HttpServletRequest httpServletRequest) {
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("User ID {} is getting requests", userId);
         return service.getRequests(userId);
     }
 
     @PatchMapping("/{requestId}/cancel")
     @ResponseStatus(HttpStatus.OK)
-    public ParticipationRequestDto participantCancelRequest(@PathVariable long userId, @PathVariable long requestId) {
+    public ParticipationRequestDto participantCancelRequest(@PathVariable long userId,
+                                                            @PathVariable long requestId,
+                                                            HttpServletRequest httpServletRequest) {
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("User ID: {} is canceling request ID: {}", userId, requestId);
         return service.cancelRequest(userId, requestId);
     }

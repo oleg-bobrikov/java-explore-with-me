@@ -15,7 +15,6 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class EventShortDto {
-    private String description;
     private String annotation;
     private CategoryDto category;
     private long confirmedRequests;

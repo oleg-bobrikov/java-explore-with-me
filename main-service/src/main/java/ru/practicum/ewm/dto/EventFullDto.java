@@ -37,6 +37,7 @@ public class EventFullDto {
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private LocalDateTime publishedOn;
 
+    @Builder.Default
     private boolean requestModeration = true;
     private Event.State state;
     private String title;

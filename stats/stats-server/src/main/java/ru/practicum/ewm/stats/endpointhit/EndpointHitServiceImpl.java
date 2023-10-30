@@ -15,14 +15,11 @@ import java.util.Set;
 @Transactional
 @AllArgsConstructor
 public class EndpointHitServiceImpl implements EndpointHitService {
-
     private final EndpointHitRepository endpointHitRepository;
     private final EndPointHitMapper endPointHitMapper;
 
-
     @Override
     public EndpointHitResponseDto saveHit(EndpointHitRequestDto requestDto) {
-
         return endPointHitMapper.toDto(endpointHitRepository.save(endPointHitMapper.toEntity(requestDto)));
     }
 

@@ -20,29 +20,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handle(Throwable exception, HttpServletRequest httpServletRequest) {
-        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        log.error("An exception occurred while processing the request {}: {}",
+                httpServletRequest.getMethod(),
+                httpServletRequest.getRequestURI(),
+                exception);
         return getApiError(exception, httpServletRequest, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handle(Exception exception, HttpServletRequest httpServletRequest) {
-        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        log.error("An exception occurred while processing the request {}: {}",
+                httpServletRequest.getMethod(),
+                httpServletRequest.getRequestURI(),
+                exception);
         return getApiError(exception, httpServletRequest, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({WrongStateException.class, ParticipantRequestException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleConflict(RuntimeException exception, HttpServletRequest httpServletRequest) {
+        log.error("An exception occurred while processing the request {}: {}",
+                httpServletRequest.getMethod(),
+                httpServletRequest.getRequestURI(),
+                exception);
+        return getApiError(exception, httpServletRequest, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handle(NotFoundException exception, HttpServletRequest httpServletRequest) {
-        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
+        log.error("An exception occurred while processing the request {}: {}",
+                httpServletRequest.getMethod(),
+                httpServletRequest.getRequestURI(),
+                exception);
         return getApiError(exception, httpServletRequest, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(ParticipantRequestValidationException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handle(ParticipantRequestValidationException exception, HttpServletRequest httpServletRequest) {
-        log.error("An exception occurred while processing the request for path: " + httpServletRequest.getRequestURI(), exception);
-        return getApiError(exception, httpServletRequest, HttpStatus.CONFLICT);
     }
 
     private ApiError getApiError(Throwable e, HttpServletRequest httpServletRequest, HttpStatus httpStatus) {
@@ -51,7 +63,7 @@ public class GlobalExceptionHandler {
                 .message(e.getLocalizedMessage())
                 .reason(getReason(e, httpStatus))
                 .status(httpStatus)
-                .path(httpServletRequest.getServletPath())
+                .path(httpServletRequest.getMethod() + " " + httpServletRequest.getServletPath())
                 .errorClass(e.getClass().getName())
                 .build();
     }

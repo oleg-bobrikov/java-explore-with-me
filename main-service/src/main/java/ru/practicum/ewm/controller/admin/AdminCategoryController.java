@@ -8,6 +8,7 @@ import ru.practicum.ewm.dto.CategoryDto;
 import ru.practicum.ewm.dto.NewCategoryDto;
 import ru.practicum.ewm.service.CategoryService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
@@ -19,24 +20,34 @@ public class AdminCategoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto adminAddCategory(@RequestBody @Valid NewCategoryDto newCategoryDto) {
+    public CategoryDto adminAddCategory(@RequestBody @Valid NewCategoryDto newCategoryDto,
+                                        HttpServletRequest httpServletRequest) {
+
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Attempt to save category with name {}", newCategoryDto.getName());
+
         return categoryService.adminAddCategory(newCategoryDto);
     }
 
     @PatchMapping(path = "/{catId}")
     @ResponseStatus(HttpStatus.OK)
     public CategoryDto adminUpdateCategory(@RequestBody @Valid NewCategoryDto requestDto,
-                              @PathVariable long catId) {
+                                           @PathVariable long catId,
+                                           HttpServletRequest httpServletRequest) {
+
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Attempt to update the name of the category with identifier {} to {}", catId, requestDto.getName());
+
         return categoryService.adminUpdateCategory(catId, requestDto);
     }
 
 
     @DeleteMapping(path = "/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void adminRemoveCategory(@PathVariable long catId) {
+    public void adminRemoveCategory(@PathVariable long catId, HttpServletRequest httpServletRequest) {
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Attempt to delete category with identifier {}", catId);
+
         categoryService.adminRemoveCategory(catId);
     }
 }

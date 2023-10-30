@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(ParticipationRequestListener.class)
 @Table(name = "participation_requests",
         uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "requester_id"}))
 public class ParticipationRequest {
