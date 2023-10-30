@@ -17,7 +17,6 @@ import ru.practicum.ewm.model.Event;
 
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.dto.ParticipationRequestConfirmation;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.ParticipationRequestRepository;
@@ -254,13 +253,11 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getConfirmedRequests(Set<Long> eventIds) {
-        List<ParticipationRequestConfirmation> confirmationList = requestRepository.findAllConfirmedByEventIdIn(eventIds);
+        List<ParticipationRequest> confirmedRequests = requestRepository
+                .findAllByStatusAndEventIdIn(ParticipationRequest.Status.CONFIRMED, eventIds);
 
-        return confirmationList.stream()
-                .collect(Collectors.toMap(
-                        ParticipationRequestConfirmation::getId,
-                        ParticipationRequestConfirmation::getConfirmedRequests
-                ));
+        return confirmedRequests.stream()
+                .collect(Collectors.groupingBy(request -> request.getEvent().getId(), Collectors.counting()));
     }
 
     private void applyCommonPatch(EventBuilder eventBuilder, UpdateEventDto patch) {

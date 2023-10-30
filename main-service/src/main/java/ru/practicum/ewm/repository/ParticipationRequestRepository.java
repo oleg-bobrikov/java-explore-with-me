@@ -8,11 +8,8 @@ import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.dto.ParticipationRequestConfirmation;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
     @Query("select " +
@@ -51,14 +48,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "   request.event.initiator.id = :initiatorId and request.event.id = :eventId")
     List<ParticipationRequestDto> findAllByInitiatorIdAndEventId(@Param("initiatorId") long initiatorId,
                                                                  @Param("eventId") long eventId);
-    @Query("select " +
-            "   pr.event.id as id, " +
-            "   count(pr.event.id) as confirmedRequests " +
-            "from " +
-            "   ParticipationRequest pr " +
-            "where " +
-            "   pr.status = 'CONFIRMED' and pr.event.id in :eventIds and pr.event.state = 'PUBLISHED' " +
-            "group by " +
-            "   pr.event.id")
-    List<ParticipationRequestConfirmation> findAllConfirmedByEventIdIn(@Param("eventIds") Set<Long> eventIds);
+
+    List<ParticipationRequest> findAllByStatusAndEventIdIn(ParticipationRequest.Status status, Collection<Long> eventIds);
 }
