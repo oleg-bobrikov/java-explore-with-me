@@ -9,7 +9,6 @@ import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Transactional
