@@ -13,6 +13,7 @@ public interface EventMapper {
     @Mapping(target = "id", expression = "java(null)")
     @Mapping(target = "createdOn", expression = "java(null)")
     @Mapping(target = "publishedOn", expression = "java(null)")
+    @Mapping(target = "state", expression = "java(Event.State.PENDING)")
     Event toModel(NewEventDto eventDto, Category categoryModel, User initiator);
 
     EventShortDto toEventShortDto(Event event, long confirmedRequests, long views);

@@ -57,8 +57,8 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "from " +
             "   ParticipationRequest pr " +
             "where " +
-            "   pr.status = 'PUBLISHED' and pr.event.id in :eventIds " +
+            "   pr.status = 'CONFIRMED' and pr.event.id in :eventIds and pr.event.state = 'PUBLISHED' " +
             "group by " +
             "   pr.event.id")
-    List<ParticipationRequestConfirmation> findAllByStatusAndEventIdIn(@Param("eventIds") Set<Long> eventIds);
+    List<ParticipationRequestConfirmation> findAllConfirmedByEventIdIn(@Param("eventIds") Set<Long> eventIds);
 }

@@ -254,7 +254,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getConfirmedRequests(Set<Long> eventIds) {
-        List<ParticipationRequestConfirmation> confirmationList = requestRepository.findAllByStatusAndEventIdIn(eventIds);
+        List<ParticipationRequestConfirmation> confirmationList = requestRepository.findAllConfirmedByEventIdIn(eventIds);
 
         return confirmationList.stream()
                 .collect(Collectors.toMap(
