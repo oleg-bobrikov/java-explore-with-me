@@ -27,7 +27,10 @@ public class GlobalExceptionHandler {
         return getApiError(exception, httpServletRequest, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({
+            PeriodValidationException.class,
+            MissingServletRequestParameterException.class,
+            MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handle(Exception exception, HttpServletRequest httpServletRequest) {
         log.error("An exception occurred while processing the request {}: {}",

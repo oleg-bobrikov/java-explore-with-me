@@ -20,7 +20,7 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class UpdateEventByInitiatorDto implements UpdateEventDto{
-    @Length(min = 20, max = 7000, message = "annotation must be at least 20 and maximum 7000 characters long")
+    @Length(min = 20, max = 2000, message = "annotation must be at least 20 and maximum 2000 characters long")
     private String annotation;
 
     @Positive

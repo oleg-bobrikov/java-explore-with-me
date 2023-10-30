@@ -39,7 +39,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         }
 
         if (!event.getState().equals(Event.State.PUBLISHED)) {
-            throw new ParticipantRequestException("Participation in an unpublished event is prohibited.");
+            throw new ParticipantRequestException("It's possible to participate only on PUBLISHED event.");
         }
 
         if (event.getParticipantLimit() != 0 && requestRepository.confirmedParticipantsByEvent(event) >= event.getParticipantLimit()) {
@@ -49,9 +49,9 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         ParticipationRequest request = ParticipationRequest.builder()
                 .requester(requester)
                 .event(event)
-                .status(event.getRequestModeration()
-                        ? ParticipationRequest.Status.PENDING
-                        : ParticipationRequest.Status.CONFIRMED)
+                .status(!event.getRequestModeration() || event.getParticipantLimit() == 0
+                        ? ParticipationRequest.Status.CONFIRMED
+                        : ParticipationRequest.Status.PENDING)
                 .build();
 
         return requestMapper.toDto(requestRepository.save(request));

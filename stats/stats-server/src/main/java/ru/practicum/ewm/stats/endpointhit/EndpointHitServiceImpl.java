@@ -24,7 +24,7 @@ public class EndpointHitServiceImpl implements EndpointHitService {
     }
 
     @Override
-    public List<ViewStatsResponseDto> getStatistics(LocalDateTime startDate, LocalDateTime endDate, Set<String> uris, boolean unique) {
+    public List<ViewStatsResponseDto> getStatistics(LocalDateTime startDate, LocalDateTime endDate, List<String> uris, boolean unique) {
         return endpointHitRepository.getStats(startDate, endDate, uris, unique);
     }
 }

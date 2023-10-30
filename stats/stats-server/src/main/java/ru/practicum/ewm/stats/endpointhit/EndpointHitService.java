@@ -12,5 +12,5 @@ public interface EndpointHitService {
 
     EndpointHitResponseDto saveHit(EndpointHitRequestDto requestDto);
 
-    List<ViewStatsResponseDto> getStatistics(LocalDateTime startDate, LocalDateTime endDate, Set<String> uris, boolean unique);
+    List<ViewStatsResponseDto> getStatistics(LocalDateTime startDate, LocalDateTime endDate, List<String> uris, boolean unique);
 }

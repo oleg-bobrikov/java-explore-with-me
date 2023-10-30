@@ -38,7 +38,7 @@ public class StatsClient {
                 "start", startDate.format(dateTimeFormatter),
                 "end", endDate.format(dateTimeFormatter),
                 "unique", unique,
-                "uris", uris));
+                "uris", uris == null ? null : String.join("&", uris)));
 
         ViewStatsResponseDto[] response = restTemplate.getForObject(
                 serverUrl.concat("/stats?start={start}&end={end}&uris={uris}&unique={unique}"),
