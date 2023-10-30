@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.dto.EventShortDto;
+import ru.practicum.ewm.dto.EventPublicFilterDto;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.service.EventService;
 
@@ -17,9 +18,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static ru.practicum.ewm.common.Constant.*;
@@ -46,14 +45,10 @@ public class PublicEventController {
         log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Public user is finding events:");
 
-        Map<String, Object> parameters = new HashMap<>();
-
-        parameters.put("text", text);
         if (text != null) {
             log.info("searched by text: {}", text);
         }
 
-        parameters.put("categoryIds", categories);
         if (categories != null) {
             log.info("filtered by categories:");
             for (long categoryId : categories) {
@@ -61,25 +56,20 @@ public class PublicEventController {
             }
         }
 
-        parameters.put("paid", paid);
         if (paid != null) {
             log.info("filtered by paid: {}", paid);
         }
 
-        parameters.put("rangeStart", rangeStart);
         if (rangeStart != null) {
             log.info("range start: {}", rangeStart.format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)));
         }
 
-        parameters.put("rangeEnd", rangeEnd);
         if (rangeEnd != null) {
             log.info("range end: {}", rangeEnd.format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)));
         }
 
         log.info("onlyAvailable: {}", onlyAvailable);
-        parameters.put("onlyAvailable", onlyAvailable);
 
-        parameters.put("sort", sort);
         if (sort != null) {
             log.info("sorted by: {}", sort);
         }
@@ -88,12 +78,20 @@ public class PublicEventController {
         log.info("size: {}", size);
 
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
-        parameters.put("page", page);
+        EventPublicFilterDto filter = EventPublicFilterDto.builder()
+                .text(text)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .categoryIds(categories)
+                .onlyAvailable(onlyAvailable)
+                .sort(sort)
+                .page(page)
+                .paid(paid)
+                .ip(httpServletRequest.getRemoteAddr())
+                .uri(httpServletRequest.getRequestURI())
+                .build();
 
-        parameters.put("uri", httpServletRequest.getRequestURI());
-        parameters.put("ip", httpServletRequest.getRemoteAddr());
-
-        return eventService.findEvents(parameters);
+        return eventService.findEvents(filter);
     }
 
     @GetMapping(path = "/{id}")

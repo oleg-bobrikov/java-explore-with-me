@@ -6,7 +6,6 @@ import ru.practicum.ewm.model.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface EventService {
@@ -20,9 +19,10 @@ public interface EventService {
 
     List<ParticipationRequestDto> initiatorGetEventRequests(long userId, long eventId);
 
-    UpdateParticipationRequestByInitiatorDto initiatorChangeRequestStatus(long userId, long eventId, UpdateParticipationRequestByInitiatorDto changeRequest);
+    UpdateParticipationRequestByInitiatorResultDto initiatorChangeRequestStatus(long userId, long eventId, UpdateParticipationRequestByInitiatorDto changeRequest);
 
-    List<EventShortDto> findEvents(Map<String, Object> parameters);
+
+    List<EventShortDto> findEvents(EventPublicFilterDto filter);
 
     EventFullDto updateEventByAdmin(long eventId, UpdateEventByAdminDto changeRequestDto);
 

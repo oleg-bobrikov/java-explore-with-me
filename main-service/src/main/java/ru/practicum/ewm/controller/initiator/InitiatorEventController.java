@@ -90,7 +90,7 @@ public class InitiatorEventController {
 
     @PatchMapping("/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
-    public UpdateParticipationRequestByInitiatorDto initiatorChangeRequestStatus(
+    public UpdateParticipationRequestByInitiatorResultDto initiatorChangeRequestStatus(
             @PathVariable long userId,
             @PathVariable long eventId,
             @RequestBody @Valid UpdateParticipationRequestByInitiatorDto changeRequest,
@@ -100,7 +100,7 @@ public class InitiatorEventController {
                 userId, eventId);
         printLogs.printObject(changeRequest, logMessage);
 
-        UpdateParticipationRequestByInitiatorDto savedRequest = eventService.initiatorChangeRequestStatus(userId, eventId, changeRequest);
+        UpdateParticipationRequestByInitiatorResultDto savedRequest = eventService.initiatorChangeRequestStatus(userId, eventId, changeRequest);
         printLogs.printObject(savedRequest, "Initiator has changed request");
 
         return savedRequest;

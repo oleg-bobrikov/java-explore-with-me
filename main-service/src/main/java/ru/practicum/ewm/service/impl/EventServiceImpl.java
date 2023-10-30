@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import ru.practicum.ewm.client.stats.StatsClient;
@@ -14,6 +15,7 @@ import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
 
+import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.projection.ParticipationRequestConfirmation;
 import ru.practicum.ewm.repository.CategoryRepository;
@@ -23,6 +25,7 @@ import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
+import ru.practicum.ewm.model.Event.EventBuilder;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -95,62 +98,88 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public UpdateParticipationRequestByInitiatorDto initiatorChangeRequestStatus(long userId, long eventId,
-                                                                                 UpdateParticipationRequestByInitiatorDto changeRequest) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public UpdateParticipationRequestByInitiatorResultDto initiatorChangeRequestStatus(
+            long userId, long eventId, UpdateParticipationRequestByInitiatorDto changeRequest) {
+
         userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
+
+        if (event.getState() != Event.State.PUBLISHED) {
+            throw new WrongStateException("The event must be in the PUBLISHED state.");
+        }
+
         int participantLimit = event.getParticipantLimit();
 
         if (participantLimit == 0 || !event.getRequestModeration()) {
             throw new BadRequestException("Change request confirmation is not required.");
         }
 
-        if (event.getState() != Event.State.PENDING) {
-            throw new WrongStateException("The event must be in the PENDING state.");
-        }
-        if (changeRequest.getStatus().equals(UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED)) {
-            int totalParticipants = requestRepository.confirmedParticipantsByEvent(event);
-            if (participantLimit >= totalParticipants) {
-                throw new ParticipantRequestException("The participation requests limit has been reached.");
+        boolean isConfirmedRequired = changeRequest.getStatus().equals(UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED);
+        if (isConfirmedRequired) {
+            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
+            int required = confirmedParticipants + changeRequest.getRequestIds().size() - participantLimit;
+            if (required > 0) {
+                throw new ParticipantRequestException("\n" +
+                        "It is necessary to increase participant limit to confirm requests by " + required);
             }
         }
 
+
         for (long requestId : changeRequest.getRequestIds()) {
-            requestRepository.findRequestById(requestId);
+            ParticipationRequest oldRequest = requestRepository.findRequestById(requestId);
+            ParticipationRequest newRequest = oldRequest.toBuilder()
+                    .status(isConfirmedRequired
+                            ? ParticipationRequest.Status.CONFIRMED
+                            : ParticipationRequest.Status.REJECTED)
+                    .build();
+            requestRepository.save(newRequest);
         }
-        return null;
+
+        return UpdateParticipationRequestByInitiatorResultDto.builder()
+                .requestIds(changeRequest.getRequestIds())
+                .status(isConfirmedRequired
+                        ? UpdateParticipationRequestByInitiatorResultDto.Status.CONFIRMED
+                        : UpdateParticipationRequestByInitiatorResultDto.Status.REJECTED)
+                .build();
     }
 
     @Override
-    public List<EventShortDto> findEvents(Map<String, Object> parameters) {
-        LocalDateTime rangeStart = (LocalDateTime) parameters.get("rangeStart");
-        LocalDateTime rangeEnd = (LocalDateTime) parameters.get("rangeEnd");
-
-        String text = (String) parameters.get("text");
-        String uri = (String) parameters.get("uri");
-        String ip = (String) parameters.get("ip");
-
-        boolean onlyAvailable = (boolean) parameters.get("onlyAvailable");
-        Boolean paid = (Boolean) parameters.get("paid");
-
-        Set<Long> categoryIds = (Set<Long>) parameters.get("categoryIds");
-
-        Event.Sort sort = (Event.Sort) parameters.get("sort");
-
-        Pageable page = (Pageable) parameters.get("page");
+    public List<EventShortDto> findEvents(EventPublicFilterDto filter) {
+        LocalDateTime rangeStart = filter.getRangeStart();
+        LocalDateTime rangeEnd = filter.getRangeEnd();
 
         if (rangeStart == null) {
             rangeStart = LocalDateTime.now();
         }
+
         if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
             throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
         }
 
-        List<Event> events = eventRepository.findAllByFilter(text, categoryIds, paid, rangeStart, rangeEnd, onlyAvailable, page);
+        List<Event> events = eventRepository.findAllByFilter(
+                filter.getText(),
+                filter.getCategoryIds(),
+                filter.getPaid(),
+                rangeStart,
+                rangeEnd,
+                filter.isOnlyAvailable(),
+                filter.getPage());
 
-        sendToStats(uri, ip);
+        sendToStats(filter.getUri(), filter.getIp());
 
-        return mapToEventShortDto(events, rangeStart, sort);
+        return mapToEventShortDto(events, filter.getSort());
+    }
+
+    @Override
+    public List<EventFullDto> adminFindEvents(Set<Long> userIds,
+                                              Set<Event.State> states,
+                                              Set<Long> categoryIds,
+                                              LocalDateTime rangeStart,
+                                              LocalDateTime rangeEnd,
+                                              Pageable page) {
+        List<Event> events = eventRepository.findByAdmin(userIds, states, categoryIds, rangeStart, rangeEnd, page);
+        return mapToEventFullDto(events);
     }
 
     @Override
@@ -161,60 +190,77 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(eventRepository.save(updatedEvent));
     }
 
-    private List<EventShortDto> mapToEventShortDto(List<Event> events, LocalDateTime start, Event.Sort sort) {
+    private List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort) {
         Set<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toSet());
 
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
+
+        Comparator<EventShortDto> comparator;
+        if (sort.equals(Event.Sort.EVENT_DATE)) {
+            comparator = Comparator.comparing(EventShortDto::getEventDate);
+        } else if (sort.equals(Event.Sort.VIEWS)) {
+            comparator = Comparator.comparing(EventShortDto::getViews).reversed();
+        } else {
+            comparator = Comparator.comparing(EventShortDto::getId); // Default sorting
+        }
+
+        return events.stream()
+                .map(event -> eventMapper.toEventShortDto(event,
+                        confirmedRequests.getOrDefault(event.getId(), 0L),
+                        eventsViews.getOrDefault(event.getId(), 0L)))
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+
+    private List<EventFullDto> mapToEventFullDto(List<Event> events) {
+        Set<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toSet());
 
         Map<Long, Long> eventsViews = getViews(eventIds);
         Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
 
         return events.stream()
-                .map(event -> eventMapper.toEventShortDto(event,
+                .map(event -> eventMapper.toEventFullDto(event,
                         confirmedRequests.getOrDefault(event.getId(), 0L),
                         eventsViews.getOrDefault(event.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
     private Map<Long, Long> getViews(Set<Long> eventIds) {
-        List<String> uris = eventIds
-                .stream()
+        List<String> uris = eventIds.stream()
                 .map(id -> "/events/" + id)
                 .collect(Collectors.toList());
 
         Optional<LocalDateTime> start = eventRepository.getFirstPublicationDate(eventIds);
 
-        Map<Long, Long> views = new HashMap<>();
-
-        if (start.isPresent()) {
-            List<ViewStatsResponseDto> response = statsClient.getStatistics(start.get(), LocalDateTime.now(), uris, true);
-            response.forEach(dto -> {
-                String uri = dto.getUri();
-                String[] split = uri.split("/");
-                String id = split[2];
-                Long eventId = Long.parseLong(id);
-                views.put(eventId, dto.getHits());
-            });
+        if (start.isEmpty()) {
+            return Collections.emptyMap();
         }
 
-        return views;
+        List<ViewStatsResponseDto> response = statsClient.getStatistics(start.get(), LocalDateTime.now(), uris, true);
+
+        return response.stream()
+                .collect(Collectors.toMap(
+                        dto -> Long.parseLong(dto.getUri().split("/")[2]),
+                        ViewStatsResponseDto::getHits));
     }
 
     private Map<Long, Long> getConfirmedRequests(Set<Long> eventIds) {
-        List<ParticipationRequestConfirmation> confirmationList = requestRepository
-                .findAllByStatusAndEventIdIn(eventIds);
+        List<ParticipationRequestConfirmation> confirmationList = requestRepository.findAllByStatusAndEventIdIn(eventIds);
 
-        Map<Long, Long> confirmedRequests = new HashMap<>();
-
-        confirmationList.forEach(confirmation -> confirmedRequests.put(confirmation.getId(), confirmation.getConfirmedRequests()));
-
-        return confirmedRequests;
+        return confirmationList.stream()
+                .collect(Collectors.toMap(
+                        ParticipationRequestConfirmation::getId,
+                        ParticipationRequestConfirmation::getConfirmedRequests
+                ));
     }
 
-    private Event applyPatch(Event event, UpdateEventByAdminDto patch) {
-        Event.EventBuilder eventBuilder = event.toBuilder();
-
+    private void applyCommonPatch(EventBuilder eventBuilder, UpdateEventDto patch) {
         if (patch.getAnnotation() != null) {
             eventBuilder.annotation(patch.getAnnotation());
         }
@@ -223,7 +269,7 @@ public class EventServiceImpl implements EventService {
             eventBuilder.category(categoryRepository.findCategoryById(patch.getCategory()));
         }
 
-        if (patch.getDescription() != null) {
+        if (patch.getDescription() != null && !patch.getDescription().isBlank()) {
             eventBuilder.description(patch.getDescription());
         }
 
@@ -243,93 +289,55 @@ public class EventServiceImpl implements EventService {
             eventBuilder.participantLimit(patch.getParticipantLimit());
         }
 
+        if (patch.getRequestModeration() != null) {
+            eventBuilder.requestModeration(patch.getRequestModeration());
+        }
+
         if (patch.getTitle() != null && !patch.getTitle().isBlank()) {
             eventBuilder.title(patch.getTitle());
         }
+    }
 
-        if (patch.getStateAction() == null) {
-            return eventBuilder.build();
-        }
+    private Event applyPatch(Event event, UpdateEventByAdminDto patch) {
+        EventBuilder eventBuilder = event.toBuilder();
+        applyCommonPatch(eventBuilder, patch);
 
-        if (patch.getStateAction().equals(PUBLISH_EVENT) && !event.getState().equals(Event.State.PENDING)) {
-            throw new WrongStateException("Event should be in PENDING state");
-        } else if (patch.getStateAction().equals(REJECT_EVENT) && event.getState().equals(Event.State.PUBLISHED)) {
-            throw new WrongStateException("Event should be not PUBLISHED");
-        } else if (patch.getStateAction().equals(PUBLISH_EVENT)) {
-            eventBuilder.state(Event.State.PUBLISHED);
-        } else if (patch.getStateAction().equals(REJECT_EVENT)) {
-            eventBuilder.state(Event.State.CANCELED);
+        if (patch.getStateAction() != null) {
+            Event.State newState = patch.getStateAction().equals(PUBLISH_EVENT) ? Event.State.PUBLISHED : Event.State.CANCELED;
+
+            if (patch.getStateAction().equals(PUBLISH_EVENT) && !event.getState().equals(Event.State.PENDING)) {
+                throw new WrongStateException("Event should be in PENDING state");
+            } else if (patch.getStateAction().equals(REJECT_EVENT) && event.getState().equals(Event.State.PUBLISHED)) {
+                throw new WrongStateException("Event should be not PUBLISHED");
+            }
+
+            eventBuilder.state(newState);
         }
 
         return eventBuilder.build();
     }
 
-    private Event applyPatch(Event event, UpdateEventByInitiatorDto dto) {
-        Event.EventBuilder eventBuilder = event.toBuilder();
 
-        if (dto.getAnnotation() != null && !dto.getAnnotation().isBlank()) {
-            eventBuilder.annotation(dto.getAnnotation());
-        }
+    private Event applyPatch(Event event, UpdateEventByInitiatorDto patch) {
+        EventBuilder eventBuilder = event.toBuilder();
 
-        if (dto.getCategory() != null) {
-            Category category = categoryRepository.findCategoryById(dto.getCategory());
-            eventBuilder.category(category);
-        }
+        applyCommonPatch(eventBuilder, patch);
 
-        if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
-            eventBuilder.description(dto.getDescription());
-        }
-
-        if (dto.getEventDate() != null) {
-            eventBuilder.eventDate(dto.getEventDate());
-        }
-
-        if (dto.getLocation() != null) {
-            eventBuilder.location(locationMapper.toModel(dto.getLocation()));
-        }
-
-        if (dto.getPaid() != null) {
-            eventBuilder.paid(dto.getPaid());
-        }
-        if (dto.getParticipantLimit() != null) {
-            eventBuilder.participantLimit(dto.getParticipantLimit());
-        }
-
-        if (dto.getRequestModeration() != null) {
-            eventBuilder.requestModeration(dto.getRequestModeration());
-        }
-
-        if (dto.getStateAction() != null) {
-            if (event.getState().equals(Event.State.PUBLISHED)) {
-                throw new WrongStateException("It is allowed to changed only CANCELED OR PENDING events.");
-            }
-            switch (dto.getStateAction()) {
+        if (patch.getStateAction() != null) {
+            switch (patch.getStateAction()) {
                 case SEND_TO_REVIEW:
+                    if (event.getState().equals(Event.State.PUBLISHED)) {
+                        throw new WrongStateException("It is allowed to change only CANCELED OR PENDING events.");
+                    }
                     eventBuilder.state(Event.State.PENDING);
                     break;
                 case CANCEL_REVIEW:
                     eventBuilder.state(Event.State.CANCELED);
                     break;
-                default:
             }
         }
 
-
-        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
-            eventBuilder.title(dto.getTitle());
-        }
-
         return eventBuilder.build();
-    }
-
-    @Override
-    public List<EventFullDto> adminFindEvents(Set<Long> userIds,
-                                              Set<Event.State> states,
-                                              Set<Long> categoryIds,
-                                              LocalDateTime rangeStart,
-                                              LocalDateTime rangeEnd,
-                                              Pageable page) {
-        return eventMapper.toEventFullDto(eventRepository.findByAdmin(userIds, states, categoryIds, rangeStart, rangeEnd, page));
     }
 
     @Override
