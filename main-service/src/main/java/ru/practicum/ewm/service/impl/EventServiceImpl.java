@@ -200,12 +200,14 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
 
         Comparator<EventShortDto> comparator;
-        if (sort.equals(Event.Sort.EVENT_DATE)) {
+        if (sort == null) {
+            comparator = Comparator.comparing(EventShortDto::getId);
+        } else if (sort.equals(Event.Sort.EVENT_DATE)) {
             comparator = Comparator.comparing(EventShortDto::getEventDate);
         } else if (sort.equals(Event.Sort.VIEWS)) {
             comparator = Comparator.comparing(EventShortDto::getViews).reversed();
         } else {
-            comparator = Comparator.comparing(EventShortDto::getId); // Default sorting
+            comparator = Comparator.comparing(EventShortDto::getId);
         }
 
         return events.stream()
