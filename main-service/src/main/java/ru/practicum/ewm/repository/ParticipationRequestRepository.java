@@ -8,7 +8,7 @@ import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.projection.ParticipationRequestConfirmation;
+import ru.practicum.ewm.dto.ParticipationRequestConfirmation;
 
 import java.util.List;
 import java.util.Optional;

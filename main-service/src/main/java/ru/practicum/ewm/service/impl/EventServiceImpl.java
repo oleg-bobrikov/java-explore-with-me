@@ -17,7 +17,7 @@ import ru.practicum.ewm.model.Event;
 
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.projection.ParticipationRequestConfirmation;
+import ru.practicum.ewm.dto.ParticipationRequestConfirmation;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.ParticipationRequestRepository;
@@ -55,36 +55,36 @@ public class EventServiceImpl implements EventService {
         User initiator = userRepository.findUserById(userId);
         Category category = categoryRepository.findCategoryById(newEventDto.getCategory());
         Event event = eventMapper.toModel(newEventDto, category, initiator);
-
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        Event savedEvent = eventRepository.save(event);
+        return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
 
     @Override
-    public EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventByInitiatorDto updateEventUserRequest) {
+    public EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventByInitiatorDto patch) {
         userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
-        if (event.getState() == Event.State.PUBLISHED) {
+        if (event.getState().equals(Event.State.PUBLISHED)) {
             throw new WrongStateException("Only pending or canceled events can be changed");
         }
-        // Immutable objects are used
-        Event updatedEvent = applyPatch(event, updateEventUserRequest);
-        return eventMapper.toEventFullDto(eventRepository.save(updatedEvent));
+        Event updatedEvent = applyPatch(event, patch);
+        Event savedEvent = eventRepository.save(updatedEvent);
+        return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<EventShortDto> initiatorGetEvents(long userId, Pageable page) {
-        return eventRepository.findByInitiatorId(userId, page).getContent().stream()
-                .map(eventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+        List<Event> events = eventRepository.findByInitiatorId(userId, page);
+        return mapToEventShortDto(events, Event.Sort.EVENT_DATE);
     }
+
 
     @Override
     public EventShortDto initiatorGetEvent(long userId, long eventId) {
-        return eventMapper.toEventShortDto(eventRepository.findByInitiatorIdAndId(userId, eventId)
+        Event event = eventRepository.findByInitiatorIdAndId(userId, eventId)
                 .orElseThrow(() -> new NotFoundException(
-                        String.format("Event with ID %s not found for user with ID %s", eventId, userId))));
-
+                        String.format("Event with ID %s not found for user with ID %s", eventId, userId)));
+        return mapToEventShortDto(List.of(event), Event.Sort.EVENT_DATE).get(0);
     }
 
     @Override
@@ -186,8 +186,9 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByAdmin(long eventId, UpdateEventByAdminDto patch) {
         Event originalEvent = eventRepository.findEventById(eventId);
         Event updatedEvent = applyPatch(originalEvent, patch);
+        Event savedEvent = eventRepository.save(updatedEvent);
 
-        return eventMapper.toEventFullDto(eventRepository.save(updatedEvent));
+        return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
 
     private List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort) {
@@ -349,7 +350,7 @@ public class EventServiceImpl implements EventService {
         log.info("Trying to send request {} from ip {} to statistic service", uri, ip);
         sendToStats(uri, ip);
 
-        return eventMapper.toEventFullDto(event);
+        return mapToEventFullDto(List.of(event)).get(0);
     }
 
     private void sendToStats(String uri, String ip) {

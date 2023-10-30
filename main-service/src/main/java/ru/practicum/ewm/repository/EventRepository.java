@@ -1,14 +1,11 @@
 package ru.practicum.ewm.repository;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
-import ru.practicum.ewm.projection.EventShortProjection;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -16,9 +13,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
-    Page<EventShortProjection> findByInitiatorId(long userId, Pageable page);
+    List<Event> findByInitiatorId(long userId, Pageable page);
 
-    Optional<EventShortProjection> findByInitiatorIdAndId(long userId, long id);
+    Optional<Event> findByInitiatorIdAndId(long userId, long id);
 
     @Query("select e from Event e " +
             "where (coalesce(:userIds, null) is null or e.initiator.id in :userIds) " +
