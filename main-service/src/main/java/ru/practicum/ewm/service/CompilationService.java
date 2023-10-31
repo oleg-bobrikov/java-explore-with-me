@@ -6,7 +6,6 @@ import ru.practicum.ewm.dto.NewCompilationDto;
 import ru.practicum.ewm.dto.UpdateCompilationDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface CompilationService {
     CompilationDto adminAddCompilation(NewCompilationDto newCompilationDto);

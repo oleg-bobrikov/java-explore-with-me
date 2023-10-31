@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
-import java.util.Map;
 
 import static ru.practicum.ewm.common.Constant.*;
 
