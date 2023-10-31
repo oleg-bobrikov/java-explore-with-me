@@ -38,7 +38,7 @@ public class AdminCompilationController {
         compilationService.adminRemoveCompilation(compId);
     }
 
-    @PatchMapping(params = "/{compId}")
+    @PatchMapping(path = "/{compId}")
     @ResponseStatus(HttpStatus.OK)
     public CompilationDto adminUpdateCompilation(@RequestBody @Valid UpdateCompilationDto updateCompilationDto,
                                                  @PathVariable long compId,
