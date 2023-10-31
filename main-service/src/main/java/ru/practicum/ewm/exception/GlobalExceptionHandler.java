@@ -2,6 +2,7 @@ package ru.practicum.ewm.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -40,7 +41,7 @@ public class GlobalExceptionHandler {
         return getApiError(exception, httpServletRequest, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({WrongStateException.class, ParticipantRequestException.class})
+    @ExceptionHandler({WrongStateException.class, ParticipantRequestException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflict(RuntimeException exception, HttpServletRequest httpServletRequest) {
         log.error("An exception occurred while processing the request {}: {}",

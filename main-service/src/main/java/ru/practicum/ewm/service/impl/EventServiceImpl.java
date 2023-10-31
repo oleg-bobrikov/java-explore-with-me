@@ -108,40 +108,44 @@ public class EventServiceImpl implements EventService {
             throw new WrongStateException("The event must be in the PUBLISHED state.");
         }
 
-        int participantLimit = event.getParticipantLimit();
-
-        if (participantLimit == 0 || !event.getRequestModeration()) {
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
             throw new BadRequestException("Change request confirmation is not required.");
         }
 
-        boolean isConfirmedRequired = changeRequest.getStatus().equals(UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED);
-        if (isConfirmedRequired) {
-            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
-            int required = confirmedParticipants + changeRequest.getRequestIds().size() - participantLimit;
-            if (required > 0) {
-                throw new ParticipantRequestException("\n" +
-                        "It is necessary to increase participant limit to confirm requests by " + required);
-            }
+        int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
+        boolean isConfirmation = changeRequest.getStatus() == UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED;
+        int toBeConfirmed = confirmedParticipants + changeRequest.getRequestIds().size() - event.getParticipantLimit();
+
+        if (isConfirmation && toBeConfirmed > 0) {
+            throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + toBeConfirmed);
         }
 
-
-        for (long requestId : changeRequest.getRequestIds()) {
+        changeRequest.getRequestIds().forEach(requestId -> {
             ParticipationRequest oldRequest = requestRepository.findRequestById(requestId);
+            if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
+                throw new ParticipantRequestException("It's not allowed to reject confirmed participation request");
+            }
+
             ParticipationRequest newRequest = oldRequest.toBuilder()
-                    .status(isConfirmedRequired
-                            ? ParticipationRequest.Status.CONFIRMED
-                            : ParticipationRequest.Status.REJECTED)
+                    .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
                     .build();
-            requestRepository.save(newRequest);
-        }
+
+            if (oldRequest.getStatus() != newRequest.getStatus()) {
+                requestRepository.save(newRequest);
+            }
+        });
+
+        UpdateParticipationRequestByInitiatorResultDto.Status resultStatus =
+                isConfirmation
+                        ? UpdateParticipationRequestByInitiatorResultDto.Status.CONFIRMED
+                        : UpdateParticipationRequestByInitiatorResultDto.Status.REJECTED;
 
         return UpdateParticipationRequestByInitiatorResultDto.builder()
                 .requestIds(changeRequest.getRequestIds())
-                .status(isConfirmedRequired
-                        ? UpdateParticipationRequestByInitiatorResultDto.Status.CONFIRMED
-                        : UpdateParticipationRequestByInitiatorResultDto.Status.REJECTED)
+                .status(resultStatus)
                 .build();
     }
+
 
     @Override
     public List<EventShortDto> findEvents(EventPublicFilterDto filter) {
@@ -189,6 +193,7 @@ public class EventServiceImpl implements EventService {
 
         return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
+
     @Override
     public List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort) {
         Set<Long> eventIds = events.stream()
@@ -216,6 +221,7 @@ public class EventServiceImpl implements EventService {
                 .sorted(comparator)
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<EventShortDto> mapToEventShortDto(List<Event> events) {
         Set<Long> eventIds = events.stream()
