@@ -1,5 +1,6 @@
 package ru.practicum.ewm.service;
 
+import org.springframework.data.domain.Pageable;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.dto.NewCompilationDto;
 import ru.practicum.ewm.dto.UpdateCompilationDto;
@@ -14,7 +15,7 @@ public interface CompilationService {
 
     CompilationDto adminUpdateCompilation(long compId, UpdateCompilationDto updateCompilationDto);
 
-    List<CompilationDto> getCompilations(Map<String, Object> parameters);
+    List<CompilationDto> getCompilations(Boolean pinned, Pageable page);
 
     CompilationDto getCompilation(long compId);
 }

@@ -1,6 +1,7 @@
 package ru.practicum.ewm.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.CompilationDto;
@@ -35,7 +36,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         Compilation savedCompilation = compilationRepository.save(compilationMapper.toModel(newCompilationDto, events));
 
-        return compilationMapper.toDto(savedCompilation, eventService.mapToEventShortDto(new ArrayList<>(savedCompilation.getEvents())));
+        return  mapToDto(savedCompilation);
     }
 
     @Override
@@ -50,7 +51,7 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation updatedCompilation = applyPatch(originalCompilation, patch);
         Compilation savedCompilation = compilationRepository.save(updatedCompilation);
 
-        return compilationMapper.toDto(savedCompilation, eventService.mapToEventShortDto(new ArrayList<>(savedCompilation.getEvents())));
+        return mapToDto(savedCompilation);
     }
 
     private Compilation applyPatch(Compilation compilation, UpdateCompilationDto patch) {
@@ -74,14 +75,23 @@ public class CompilationServiceImpl implements CompilationService {
         return compilationBuilder.build();
     }
 
-
     @Override
-    public List<CompilationDto> getCompilations(Map<String, Object> parameters) {
-        return null;
+    public List<CompilationDto> getCompilations(Boolean pinned, Pageable page) {
+        List<Compilation> compilations = pinned == null
+                ? compilationRepository.findAll(page).getContent()
+                : compilationRepository.findAllByPinnedIs(pinned, page);
+
+        return compilations.stream()
+                .map(this::mapToDto)
+                        .collect(Collectors.toList());
     }
 
     @Override
     public CompilationDto getCompilation(long compId) {
-        return null;
+        return mapToDto(compilationRepository.findCompilationById(compId));
+    }
+
+    private CompilationDto mapToDto(Compilation compilation) {
+        return compilationMapper.toDto(compilation, eventService.mapToEventShortDto(new ArrayList<>(compilation.getEvents())));
     }
 }

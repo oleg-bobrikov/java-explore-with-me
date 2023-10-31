@@ -2,6 +2,8 @@ package ru.practicum.ewm.controller.pub;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.service.CompilationService;
@@ -30,19 +32,14 @@ public class PublicCompilationController {
         log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
         log.info("Attempt to get compilations:");
 
-        Map<String, Object> parameters = Map.of(
-                "pinned", pinned,
-                "from", from,
-                "size", size
-        );
-
         if (pinned != null) {
             log.info("pinned: {}", pinned);
         }
         log.info("from: {}", from);
         log.info("size: {}", size);
+        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
 
-        return compilationService.getCompilations(parameters);
+        return compilationService.getCompilations(pinned, page);
     }
 
     @GetMapping(path = "/{compId}")
