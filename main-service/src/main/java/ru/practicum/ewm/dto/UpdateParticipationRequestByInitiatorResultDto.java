@@ -12,10 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class UpdateParticipationRequestByInitiatorResultDto {
-    private List<Long> requestIds;
-    private Status status;
-    public enum Status {
-        CONFIRMED,
-        REJECTED
-    }
+    private List<ParticipationRequestDto> confirmedRequests;
+    private List<ParticipationRequestDto> rejectedRequests;
 }

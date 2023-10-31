@@ -37,17 +37,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     }
 
 
-    @Query("select " +
-            "   request.created as created, " +
-            "   request.event.id as event, " +
-            "   request.id as id, " +
-            "   request.status as status " +
-            "from " +
-            "   ParticipationRequest as request " +
-            "where " +
-            "   request.event.initiator.id = :initiatorId and request.event.id = :eventId")
-    List<ParticipationRequestDto> findAllByInitiatorIdAndEventId(@Param("initiatorId") long initiatorId,
-                                                                 @Param("eventId") long eventId);
+    List<ParticipationRequest> findAllByEventIdAndEventInitiatorId(long eventId, long initiatorId);
 
     List<ParticipationRequest> findAllByStatusAndEventIdIn(ParticipationRequest.Status status, Collection<Long> eventIds);
 }

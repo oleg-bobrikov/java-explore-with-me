@@ -15,7 +15,7 @@ public interface EventService {
 
     List<EventShortDto> initiatorGetEvents(long userId, Pageable page);
 
-    EventShortDto initiatorGetEvent(long userId, long eventId);
+    EventFullDto initiatorGetEvent(long userId, long eventId);
 
     List<ParticipationRequestDto> initiatorGetEventRequests(long userId, long eventId);
 

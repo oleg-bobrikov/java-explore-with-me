@@ -12,6 +12,7 @@ import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.exception.*;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.mapper.LocationMapper;
+import ru.practicum.ewm.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
 
@@ -45,6 +46,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final ParticipationRequestRepository requestRepository;
     private final StatsClient statsClient;
+    private final ParticipationRequestMapper participationRequestMapper;
 
     @Value("${app.name}")
     private String app;
@@ -79,31 +81,32 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public EventShortDto initiatorGetEvent(long userId, long eventId) {
+    public EventFullDto initiatorGetEvent(long userId, long eventId) {
         Event event = eventRepository.findByInitiatorIdAndId(userId, eventId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Event with ID %s not found for user with ID %s", eventId, userId)));
-        return mapToEventShortDto(List.of(event)).get(0);
+        return mapToEventFullDto(List.of(event)).get(0);
     }
 
     @Override
     public List<ParticipationRequestDto> initiatorGetEventRequests(long initiatorId, long eventId) {
-        List<ParticipationRequestDto> requestDtoList = requestRepository
-                .findAllByInitiatorIdAndEventId(initiatorId, eventId);
-        if (requestDtoList.isEmpty()) {
+        List<ParticipationRequest> requests = requestRepository
+                .findAllByEventIdAndEventInitiatorId(eventId, initiatorId);
+
+        if (requests.isEmpty()) {
             throw new NotFoundException("No participation requests found for the event with ID: " + eventId);
         }
-        return requestDtoList;
+
+        return participationRequestMapper.toDto(requests);
     }
+
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public UpdateParticipationRequestByInitiatorResultDto initiatorChangeRequestStatus(
             long userId, long eventId, UpdateParticipationRequestByInitiatorDto changeRequest) {
 
-        userRepository.findUserById(userId);
         Event event = eventRepository.findEventById(eventId);
-
         if (event.getState() != Event.State.PUBLISHED) {
             throw new WrongStateException("The event must be in the PUBLISHED state.");
         }
@@ -112,40 +115,38 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Change request confirmation is not required.");
         }
 
-        int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
         boolean isConfirmation = changeRequest.getStatus() == UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED;
-        int toBeConfirmed = confirmedParticipants + changeRequest.getRequestIds().size() - event.getParticipantLimit();
-
-        if (isConfirmation && toBeConfirmed > 0) {
-            throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + toBeConfirmed);
+        if (isConfirmation) {
+            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
+            int balance = event.getParticipantLimit() - confirmedParticipants - changeRequest.getRequestIds().size();
+            if (balance < 0) {
+                throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + -balance);
+            }
         }
 
-        changeRequest.getRequestIds().forEach(requestId -> {
-            ParticipationRequest oldRequest = requestRepository.findRequestById(requestId);
-            if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
-                throw new ParticipantRequestException("It's not allowed to reject confirmed participation request");
-            }
+        List<ParticipationRequestDto> updatedRequests = changeRequest.getRequestIds().stream()
+                .map(requestId -> {
+                    ParticipationRequest oldRequest = requestRepository.findRequestById(requestId);
+                    if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
+                        throw new ParticipantRequestException("It's not allowed to reject a confirmed participation request");
+                    }
 
-            ParticipationRequest newRequest = oldRequest.toBuilder()
-                    .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
-                    .build();
+                    ParticipationRequest newRequest = oldRequest.toBuilder()
+                            .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
+                            .build();
 
-            if (oldRequest.getStatus() != newRequest.getStatus()) {
-                requestRepository.save(newRequest);
-            }
-        });
+                    return oldRequest.getStatus() != newRequest.getStatus() ? requestRepository.save(newRequest) : oldRequest;
+                }).map(participationRequestMapper::toDto)
+                .collect(Collectors.toList());
 
-        UpdateParticipationRequestByInitiatorResultDto.Status resultStatus =
-                isConfirmation
-                        ? UpdateParticipationRequestByInitiatorResultDto.Status.CONFIRMED
-                        : UpdateParticipationRequestByInitiatorResultDto.Status.REJECTED;
+        List<ParticipationRequestDto> confirmedRequests = isConfirmation ? updatedRequests : new ArrayList<>();
+        List<ParticipationRequestDto> rejectedRequests = !isConfirmation ? updatedRequests : new ArrayList<>();
 
         return UpdateParticipationRequestByInitiatorResultDto.builder()
-                .requestIds(changeRequest.getRequestIds())
-                .status(resultStatus)
+                .confirmedRequests(confirmedRequests)
+                .rejectedRequests(rejectedRequests)
                 .build();
     }
-
 
     @Override
     public List<EventShortDto> findEvents(EventPublicFilterDto filter) {

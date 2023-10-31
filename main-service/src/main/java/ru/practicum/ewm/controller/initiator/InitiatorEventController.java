@@ -70,7 +70,7 @@ public class InitiatorEventController {
 
     @GetMapping(path = "/{eventId}")
     @ResponseStatus(HttpStatus.OK)
-    public EventShortDto initiatorGetEvent(@PathVariable long userId,
+    public EventFullDto initiatorGetEvent(@PathVariable long userId,
                                            @PathVariable long eventId,
                                            HttpServletRequest httpServletRequest) {
         log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
