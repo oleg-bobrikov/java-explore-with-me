@@ -24,7 +24,7 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 public class StatsClient {
     private final RestTemplate restTemplate;
 
-    @Value("${stats-server.url}")
+    @Value("${statistics.server.url}")
     private String serverUrl;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
