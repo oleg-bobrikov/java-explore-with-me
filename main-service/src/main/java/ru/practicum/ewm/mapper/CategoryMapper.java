@@ -9,11 +9,10 @@ import ru.practicum.ewm.model.Category;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface CategoryMapper
-{
+public interface CategoryMapper {
     CategoryDto toDto(Category category);
-    List<CategoryDto> toDto(List<Category> category);
 
+    List<CategoryDto> toDto(List<Category> category);
     @Mapping(target = "id", expression = "java(null)")
     Category toModel(NewCategoryDto categoryDto);
 }

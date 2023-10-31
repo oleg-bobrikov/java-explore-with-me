@@ -4,14 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.util.Set;
+
+import java.util.List;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CompilationDto {
-    Set<Long> events;
+    List<EventShortDto> events;
     long id;
     boolean pinned;
     String title;

@@ -6,18 +6,34 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.dto.NewCompilationDto;
 import ru.practicum.ewm.dto.UpdateCompilationDto;
+import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.mapper.CompilationMapper;
+import ru.practicum.ewm.model.Compilation;
+import ru.practicum.ewm.model.Event;
+import ru.practicum.ewm.repository.CompilationRepository;
+import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.service.CompilationService;
+import ru.practicum.ewm.service.EventService;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CompilationServiceImpl implements CompilationService {
+    private final CompilationRepository compilationRepository;
+    private final CompilationMapper compilationMapper;
+    private final EventRepository eventRepository;
+    private final EventService eventService;
+
     @Override
     public CompilationDto adminAddCompilation(NewCompilationDto newCompilationDto) {
-        return null;
+        List<Event> events = new ArrayList<>();
+        newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findEventById(eventId)));
+
+        Compilation savedCompilation = compilationRepository.save(compilationMapper.toModel(newCompilationDto, events));
+
+        return compilationMapper.toDto(savedCompilation, eventService.mapToEventShortDto(new ArrayList<>(savedCompilation.getEvents())));
     }
 
     @Override
@@ -27,6 +43,10 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto adminUpdateCompilation(long compId, UpdateCompilationDto updateCompilationDto) {
+        Compilation originalCompilation = compilationRepository.findById(compId).orElseThrow(
+                () -> new NotFoundException(
+                        String.format("No event found with identifier %s", compId)));
+
         return null;
     }
 

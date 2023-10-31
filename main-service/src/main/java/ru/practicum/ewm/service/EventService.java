@@ -34,4 +34,8 @@ public interface EventService {
                                        Pageable page);
 
     EventFullDto findPublishedEventById(long id, String uri, String ip);
+
+    List<EventShortDto> mapToEventShortDto(List<Event> events);
+
+    List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort);
 }

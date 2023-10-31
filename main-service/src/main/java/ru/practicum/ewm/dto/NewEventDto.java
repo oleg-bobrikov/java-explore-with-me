@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.dto.validator.LocalDateTimeIsAfter2Hours;
 
 import javax.validation.constraints.*;
@@ -17,17 +16,17 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(toBuilder = true)
+@Builder
 public class NewEventDto {
     @NotBlank
-    @Length(min = 20, max = 2000,  message = "annotation must be at least 20 and maximum 2000 characters long")
+    @Size(min = 20, max = 2000, message = "annotation must be at least 20 and maximum 2000 characters long")
     private String annotation;
 
     @Positive
     private long category;
 
     @NotBlank
-    @Length(min = 20, max = 7000,  message = "description must be at least 20 and maximum 7000 characters long")
+    @Size(min = 20, max = 7000, message = "description must be at least 20 and maximum 7000 characters long")
     private String description;
 
     @NotNull
@@ -50,6 +49,6 @@ public class NewEventDto {
     private boolean requestModeration = true;
 
     @NotBlank
-    @Length(min = 3, max = 120,  message = "title must be at least 3 and maximum 120 characters long")
+    @Size(min = 3, max = 120, message = "title must be at least 3 and maximum 120 characters long")
     private String title;
 }

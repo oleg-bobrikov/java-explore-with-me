@@ -74,7 +74,7 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     public List<EventShortDto> initiatorGetEvents(long userId, Pageable page) {
         List<Event> events = eventRepository.findByInitiatorId(userId, page);
-        return mapToEventShortDto(events, Event.Sort.EVENT_DATE);
+        return mapToEventShortDto(events);
     }
 
 
@@ -83,7 +83,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByInitiatorIdAndId(userId, eventId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Event with ID %s not found for user with ID %s", eventId, userId)));
-        return mapToEventShortDto(List.of(event), Event.Sort.EVENT_DATE).get(0);
+        return mapToEventShortDto(List.of(event)).get(0);
     }
 
     @Override
@@ -189,8 +189,8 @@ public class EventServiceImpl implements EventService {
 
         return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
-
-    private List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort) {
+    @Override
+    public List<EventShortDto> mapToEventShortDto(List<Event> events, Event.Sort sort) {
         Set<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toSet());
@@ -214,6 +214,21 @@ public class EventServiceImpl implements EventService {
                         confirmedRequests.getOrDefault(event.getId(), 0L),
                         eventsViews.getOrDefault(event.getId(), 0L)))
                 .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+    @Override
+    public List<EventShortDto> mapToEventShortDto(List<Event> events) {
+        Set<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
+
+        return events.stream()
+                .map(event -> eventMapper.toEventShortDto(event,
+                        confirmedRequests.getOrDefault(event.getId(), 0L),
+                        eventsViews.getOrDefault(event.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
