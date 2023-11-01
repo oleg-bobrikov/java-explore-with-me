@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PrintLogs {
     private final ObjectMapper objectMapper;
+
     public void printObject(Object dto, String message) {
         try {
             String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dto);

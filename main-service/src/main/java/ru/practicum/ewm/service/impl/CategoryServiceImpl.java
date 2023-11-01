@@ -48,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto adminUpdateCategory(long id, NewCategoryDto requestDto) {
         Category category = categoryRepository.findCategoryById(id);
-        if (category.getName().equals(requestDto.getName())){
+        if (category.getName().equals(requestDto.getName())) {
             return categoryMapper.toDto(category);
         }
 

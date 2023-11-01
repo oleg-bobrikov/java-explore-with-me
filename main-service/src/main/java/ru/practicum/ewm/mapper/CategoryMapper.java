@@ -13,6 +13,7 @@ public interface CategoryMapper {
     CategoryDto toDto(Category category);
 
     List<CategoryDto> toDto(List<Category> category);
+
     @Mapping(target = "id", expression = "java(null)")
     Category toModel(NewCategoryDto categoryDto);
 }

@@ -23,14 +23,13 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 public class PublicCategoryController {
     private final CategoryService categoryService;
 
-
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                            @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                            HttpServletRequest httpServletRequest) {
         log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
-        log.info("Get all categories with page from = {} and size = {}", from , size);
+        log.info("Get all categories with page from = {} and size = {}", from, size);
         return categoryService.getCategories(from, size);
     }
 

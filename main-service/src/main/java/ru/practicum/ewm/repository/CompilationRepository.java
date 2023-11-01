@@ -8,12 +8,12 @@ import ru.practicum.ewm.model.Compilation;
 import java.util.List;
 
 public interface CompilationRepository extends JpaRepository<Compilation, Long> {
-
     default Compilation findCompilationById(long id) {
         return findById(id).orElseThrow(
                 () -> new NotFoundException(
                         String.format("No compilation found with identifier %s", id)));
     }
+
     List<Compilation> findAllByPinnedIs(boolean pinned, Pageable page);
 
 }
