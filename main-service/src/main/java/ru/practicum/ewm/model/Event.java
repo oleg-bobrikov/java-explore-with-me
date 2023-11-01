@@ -73,7 +73,8 @@ public class Event {
 
     public enum Sort {
         EVENT_DATE,
-        VIEWS
+        VIEWS,
+        ID
     }
 }
 

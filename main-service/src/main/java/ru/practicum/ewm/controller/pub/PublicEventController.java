@@ -38,7 +38,7 @@ public class PublicEventController {
                                    @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_PATTERN) LocalDateTime rangeStart,
                                    @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_PATTERN) LocalDateTime rangeEnd,
                                    @RequestParam(defaultValue = "false") boolean onlyAvailable,
-                                   @RequestParam(required = false) Event.Sort sort,
+                                   @RequestParam(defaultValue = SORT_DEFAULT) Event.Sort sort,
                                    @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                    @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                    HttpServletRequest httpServletRequest) {

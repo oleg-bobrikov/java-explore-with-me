@@ -208,15 +208,20 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
 
         Comparator<EventShortDto> comparator;
-        if (sort == null) {
-            comparator = Comparator.comparing(EventShortDto::getId);
-        } else if (sort.equals(Event.Sort.EVENT_DATE)) {
-            comparator = Comparator.comparing(EventShortDto::getEventDate);
-        } else if (sort.equals(Event.Sort.VIEWS)) {
-            comparator = Comparator.comparing(EventShortDto::getViews).reversed();
-        } else {
-            comparator = Comparator.comparing(EventShortDto::getId);
+
+        switch (sort) {
+            case EVENT_DATE:
+                comparator = Comparator.comparing(EventShortDto::getEventDate);
+                break;
+            case VIEWS:
+                comparator = Comparator.comparing(EventShortDto::getViews).reversed();
+                break;
+            case ID:
+            default:
+                comparator = Comparator.comparing(EventShortDto::getId);
+                break;
         }
+
 
         return events.stream()
                 .map(event -> eventMapper.toEventShortDto(event,
@@ -272,9 +277,14 @@ public class EventServiceImpl implements EventService {
         List<ViewStatsResponseDto> response = statsClient.getStatistics(start.get(), LocalDateTime.now(), uris, true);
 
         return response.stream()
+                .filter(dto -> {
+                    String[] uriParts = dto.getUri().split("/");
+                    return uriParts.length >= 3;
+                })
                 .collect(Collectors.toMap(
                         dto -> Long.parseLong(dto.getUri().split("/")[2]),
-                        ViewStatsResponseDto::getHits));
+                        ViewStatsResponseDto::getHits
+                ));
     }
 
     private Map<Long, Long> getConfirmedRequests(Set<Long> eventIds) {
