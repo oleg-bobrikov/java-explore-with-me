@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.ewm.stats.dto.EndpointHitResponseDto;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
@@ -45,6 +46,10 @@ public class EndPointHitController {
                                                     @RequestParam(required = false) List<String> uris,
                                                     @RequestParam(defaultValue = "false") boolean unique) {
         log.info("Get statistics start={}, end={}, uris={}, unique={}", start, end, uris, unique);
+        if (start.isAfter(end)) {
+            log.error("start date {} should be before or equal the end date {}", start, end);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "start date should be before or equal the end date");
+        }
         return endpointHitService.getStatistics(start, end, uris, unique);
     }
 }
