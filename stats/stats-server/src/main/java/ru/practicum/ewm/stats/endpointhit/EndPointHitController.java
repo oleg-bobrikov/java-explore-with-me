@@ -46,7 +46,7 @@ public class EndPointHitController {
                                                     @RequestParam(required = false) List<String> uris,
                                                     @RequestParam(defaultValue = "false") boolean unique) {
         log.info("Get statistics start={}, end={}, uris={}, unique={}", start, end, uris, unique);
-        if (end.isBefore(end)) {
+        if (end.isBefore(start)) {
             log.error("start date {} should be before or equal the end date {}", start, end);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "end date should be after or equal the start date");
         }
