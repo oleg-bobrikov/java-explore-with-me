@@ -13,7 +13,7 @@ public interface EventService {
 
     EventFullDto initiatorUpdateEvent(long userId, long eventId, UpdateEventByInitiatorDto updateEventUserRequest);
 
-    List<EventShortDto> initiatorGetEvents(long userId, Pageable page);
+    List<EventShortDto> initiatorGetEvents(long userId, int from, int size);
 
     EventFullDto initiatorGetEvent(long userId, long eventId);
 
@@ -26,12 +26,7 @@ public interface EventService {
 
     EventFullDto updateEventByAdmin(long eventId, UpdateEventByAdminDto changeRequestDto);
 
-    List<EventFullDto> adminFindEvents(Set<Long> users,
-                                       Set<Event.State> states,
-                                       Set<Long> categories,
-                                       LocalDateTime rangeStart,
-                                       LocalDateTime rangeEnd,
-                                       Pageable page);
+    List<EventFullDto> adminFindEvents(EventAdminFilterDto filterDto);
 
     EventFullDto findPublishedEventById(long id, String uri, String ip);
 

@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import ru.practicum.ewm.model.Event;
 
 import java.time.LocalDateTime;
@@ -14,16 +13,12 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventPublicFilterDto {
-    private String text;
+public class EventAdminFilterDto {
+    private Set<Long> users;
+    private Set<Event.State> states;
+    private Set<Long> categories;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;
-    private String uri;
-    private String ip;
-    private boolean onlyAvailable;
-    private Boolean paid;
-    private Set<Long> categoryIds;
-    private Event.Sort sort;
     private int from;
     private int size;
 }

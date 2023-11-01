@@ -11,6 +11,7 @@ import ru.practicum.ewm.mapper.UserMapper;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.UserService;
+import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> adminGetUsers(Set<Long> ids, int from, int size) {
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
+        PageRequest page = PageRequestHelper.of(from, size);
         if (ids == null) {
             return userMapper.toDto(userRepository.findAll(page).getContent());
         } else {

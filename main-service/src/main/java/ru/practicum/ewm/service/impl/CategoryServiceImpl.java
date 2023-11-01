@@ -11,6 +11,7 @@ import ru.practicum.ewm.mapper.CategoryMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.service.CategoryService;
+import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryDto> getCategories(int from, int size) {
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
+        PageRequest page = PageRequestHelper.of(from, size);
         return categoryMapper.toDto(categoryRepository.findAll(page).getContent());
     }
 

@@ -12,14 +12,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.dto.ApiError;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 import java.util.Collections;
 
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    @ExceptionHandler(Throwable.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler
     public ApiError handle(Throwable exception, HttpServletRequest httpServletRequest) {
         log.error("An exception occurred while processing the request {}: {}",
                 httpServletRequest.getMethod(),
@@ -31,7 +32,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             PeriodValidationException.class,
             MissingServletRequestParameterException.class,
-            MethodArgumentNotValidException.class})
+            MethodArgumentNotValidException.class,
+            ConstraintViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handle(Exception exception, HttpServletRequest httpServletRequest) {
         log.error("An exception occurred while processing the request {}: {}",

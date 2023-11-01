@@ -3,14 +3,17 @@ package ru.practicum.ewm.controller.admin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.dto.EventAdminFilterDto;
+import ru.practicum.ewm.dto.EventPublicFilterDto;
 import ru.practicum.ewm.dto.UpdateEventByAdminDto;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.util.PrintLogs;
+import ru.practicum.ewm.util.PageRequestHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -20,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.common.Constant.*;
 
@@ -27,6 +31,7 @@ import static ru.practicum.ewm.common.Constant.*;
 @Slf4j
 @RequestMapping(path = "/admin/events")
 @RequiredArgsConstructor
+@Validated
 public class AdminEventController {
     private final EventService eventService;
     private final PrintLogs printLogs;
@@ -41,25 +46,19 @@ public class AdminEventController {
                                        @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                        HttpServletRequest httpServletRequest) {
 
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        printLogs.printUrl(httpServletRequest);
         log.info("admin is finding events using filter by:");
 
         if (users != null) {
-            for (long userId : users) {
-                log.info("user ID: {}", userId);
-            }
+            log.info("user IDs: {}", users.stream().map(String::valueOf).collect(Collectors.joining(", ")));
         }
 
         if (states != null) {
-            for (Event.State state : states) {
-                log.info("state: {}", state);
-            }
+            log.info("state IDs: {}", states.stream().map(String::valueOf).collect(Collectors.joining(", ")));
         }
 
         if (categories != null) {
-            for (long categoryId : categories) {
-                log.info("category ID: {}", categoryId);
-            }
+            log.info("category IDs: {}", categories.stream().map(String::valueOf).collect(Collectors.joining(", ")));
         }
 
         if (rangeStart != null) {
@@ -73,9 +72,17 @@ public class AdminEventController {
         log.info("from: {}", from);
         log.info("size: {}", size);
 
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
+        EventAdminFilterDto filter = EventAdminFilterDto.builder()
+                .users(users)
+                .states(states)
+                .categories(categories)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .from(from)
+                .size(size)
+                .build();
 
-        return eventService.adminFindEvents(users, states, categories, rangeStart, rangeEnd, page);
+        return eventService.adminFindEvents(filter);
     }
 
     @PatchMapping(path = "/{eventId}")
@@ -83,7 +90,7 @@ public class AdminEventController {
                                   @Valid @RequestBody UpdateEventByAdminDto updateEventByAdminDto,
                                   HttpServletRequest httpServletRequest) {
 
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        printLogs.printUrl(httpServletRequest);
         String message = String.format("Administrator update event ID: %s by patch", eventId);
         printLogs.printObject(updateEventByAdminDto, message);
 

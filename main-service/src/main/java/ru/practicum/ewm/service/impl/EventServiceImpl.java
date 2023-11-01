@@ -2,6 +2,7 @@ package ru.practicum.ewm.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -26,6 +27,7 @@ import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.model.Event.EventBuilder;
+import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -74,7 +76,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventShortDto> initiatorGetEvents(long userId, Pageable page) {
+    public List<EventShortDto> initiatorGetEvents(long userId, int from, int size) {
+        PageRequest page = PageRequestHelper.of(from, size);
         List<Event> events = eventRepository.findByInitiatorId(userId, page);
         return mapToEventShortDto(events);
     }
@@ -160,7 +163,7 @@ public class EventServiceImpl implements EventService {
         if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
             throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
         }
-
+        PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
         List<Event> events = eventRepository.findAllByFilter(
                 filter.getText(),
                 filter.getCategoryIds(),
@@ -168,7 +171,7 @@ public class EventServiceImpl implements EventService {
                 rangeStart,
                 rangeEnd,
                 filter.isOnlyAvailable(),
-                filter.getPage());
+                page);
 
         sendToStats(filter.getUri(), filter.getIp());
 
@@ -176,13 +179,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventFullDto> adminFindEvents(Set<Long> userIds,
-                                              Set<Event.State> states,
-                                              Set<Long> categoryIds,
-                                              LocalDateTime rangeStart,
-                                              LocalDateTime rangeEnd,
-                                              Pageable page) {
-        List<Event> events = eventRepository.findByAdmin(userIds, states, categoryIds, rangeStart, rangeEnd, page);
+    public List<EventFullDto> adminFindEvents(EventAdminFilterDto filter) {
+        PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
+        List<Event> events = eventRepository.findByAdmin(
+                filter.getUsers(),
+                filter.getStates(),
+                filter.getCategories(),
+                filter.getRangeStart(),
+                filter.getRangeEnd(),
+                page);
         return mapToEventFullDto(events);
     }
 

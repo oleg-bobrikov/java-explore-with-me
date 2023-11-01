@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -19,5 +21,9 @@ public class PrintLogs {
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize object to JSON: {}", e.getLocalizedMessage());
         }
+    }
+
+    public void printUrl(HttpServletRequest httpServletRequest){
+        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.ewm.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import ru.practicum.ewm.repository.CompilationRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.service.CompilationService;
 import ru.practicum.ewm.service.EventService;
+import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,7 +38,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         Compilation savedCompilation = compilationRepository.save(compilationMapper.toModel(newCompilationDto, events));
 
-        return  mapToDto(savedCompilation);
+        return mapToDto(savedCompilation);
     }
 
     @Override
@@ -76,14 +78,15 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public List<CompilationDto> getCompilations(Boolean pinned, Pageable page) {
+    public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
+        PageRequest page = PageRequestHelper.of(from, size);
         List<Compilation> compilations = pinned == null
                 ? compilationRepository.findAll(page).getContent()
                 : compilationRepository.findAllByPinnedIs(pinned, page);
 
         return compilations.stream()
                 .map(this::mapToDto)
-                        .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override

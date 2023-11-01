@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.CategoryDto;
 
 import ru.practicum.ewm.service.CategoryService;
+import ru.practicum.ewm.util.PrintLogs;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
@@ -22,21 +23,20 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 @RequiredArgsConstructor
 public class PublicCategoryController {
     private final CategoryService categoryService;
+    private final PrintLogs printLogs;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                            @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                            HttpServletRequest httpServletRequest) {
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        printLogs.printUrl(httpServletRequest);
         log.info("Get all categories with page from = {} and size = {}", from, size);
         return categoryService.getCategories(from, size);
     }
 
     @GetMapping(path = "/{catId}")
-    @ResponseStatus(HttpStatus.OK)
-    public CategoryDto getCategory(@PathVariable long catId, HttpServletRequest httpServletRequest) {
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+    public CategoryDto getCategory(@PathVariable @Positive long catId, HttpServletRequest httpServletRequest) {
+        printLogs.printUrl(httpServletRequest);
         log.info("Get category by ID: {}", catId);
         return categoryService.getCategory(catId);
     }

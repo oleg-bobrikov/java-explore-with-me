@@ -14,7 +14,7 @@ public interface CompilationService {
 
     CompilationDto adminUpdateCompilation(long compId, UpdateCompilationDto updateCompilationDto);
 
-    List<CompilationDto> getCompilations(Boolean pinned, Pageable page);
+    List<CompilationDto> getCompilations(Boolean pinned, int from, int size);
 
     CompilationDto getCompilation(long compId);
 }

@@ -18,10 +18,9 @@ public class NewCompilationDto {
     @Builder.Default
     private Set<Long> events = new HashSet<>();
 
-    @Builder.Default
-    boolean pinned = false;
+    private boolean pinned;
 
     @NotBlank
     @Size(min = 1, max = 50)
-    String title;
+    private String title;
 }

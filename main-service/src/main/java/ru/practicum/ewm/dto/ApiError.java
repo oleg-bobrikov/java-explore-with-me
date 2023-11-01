@@ -28,8 +28,8 @@ public class ApiError {
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    String path;
+    private String path;
 
     @JsonProperty("class")
-    String errorClass;
+    private String errorClass;
 }

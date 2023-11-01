@@ -5,13 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.dto.EventShortDto;
 import ru.practicum.ewm.dto.EventPublicFilterDto;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.service.EventService;
+import ru.practicum.ewm.util.PrintLogs;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
@@ -27,8 +28,10 @@ import static ru.practicum.ewm.common.Constant.*;
 @Slf4j
 @RequestMapping(path = "/events")
 @RequiredArgsConstructor
+@Validated
 public class PublicEventController {
     private final EventService eventService;
+    private final PrintLogs printLogs;
 
     @GetMapping
     List<EventShortDto> findEvents(@RequestParam(required = false) String text,
@@ -41,8 +44,7 @@ public class PublicEventController {
                                    @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                    @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                    HttpServletRequest httpServletRequest) {
-
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+        printLogs.printUrl(httpServletRequest);
         log.info("Public user is finding events:");
 
         if (text != null) {
@@ -77,7 +79,6 @@ public class PublicEventController {
         log.info("from: {}", from);
         log.info("size: {}", size);
 
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         EventPublicFilterDto filter = EventPublicFilterDto.builder()
                 .text(text)
                 .rangeStart(rangeStart)
@@ -85,7 +86,8 @@ public class PublicEventController {
                 .categoryIds(categories)
                 .onlyAvailable(onlyAvailable)
                 .sort(sort)
-                .page(page)
+                .from(from)
+                .size(size)
                 .paid(paid)
                 .ip(httpServletRequest.getRemoteAddr())
                 .uri(httpServletRequest.getRequestURI())
@@ -95,9 +97,8 @@ public class PublicEventController {
     }
 
     @GetMapping(path = "/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public EventFullDto getEvent(@PathVariable long id, HttpServletRequest httpServletRequest) {
-        log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
+    public EventFullDto getEvent(@PathVariable @Positive long id, HttpServletRequest httpServletRequest) {
+        printLogs.printUrl(httpServletRequest);
         log.info("Public user is getting event by ID: {}", id);
         return eventService.findPublishedEventById(id, httpServletRequest.getRequestURI(), httpServletRequest.getRemoteAddr());
     }
