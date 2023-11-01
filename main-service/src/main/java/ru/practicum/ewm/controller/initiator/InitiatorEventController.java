@@ -2,9 +2,6 @@ package ru.practicum.ewm.controller.initiator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -70,8 +67,8 @@ public class InitiatorEventController {
 
     @GetMapping(path = "/{eventId}")
     public EventFullDto initiatorGetEvent(@PathVariable @Positive long userId,
-                                           @PathVariable @Positive long eventId,
-                                           HttpServletRequest httpServletRequest) {
+                                          @PathVariable @Positive long eventId,
+                                          HttpServletRequest httpServletRequest) {
         printLogs.printUrl(httpServletRequest);
         log.info("Initiator is getting event by user ID: {}, event ID: {}", userId, eventId);
         return eventService.initiatorGetEvent(userId, eventId);

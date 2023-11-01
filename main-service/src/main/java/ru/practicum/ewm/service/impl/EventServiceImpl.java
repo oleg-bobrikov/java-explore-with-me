@@ -3,7 +3,6 @@ package ru.practicum.ewm.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +15,6 @@ import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.model.Event;
-
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.CategoryRepository;

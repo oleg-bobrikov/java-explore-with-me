@@ -1,12 +1,9 @@
 package ru.practicum.ewm.service;
 
-import org.springframework.data.domain.Pageable;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.Event;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 public interface EventService {
     EventFullDto initiatorAddEvent(long userId, NewEventDto newEventDto);

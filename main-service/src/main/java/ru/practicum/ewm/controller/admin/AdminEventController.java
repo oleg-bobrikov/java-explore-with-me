@@ -2,18 +2,15 @@ package ru.practicum.ewm.controller.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.EventAdminFilterDto;
-import ru.practicum.ewm.dto.EventPublicFilterDto;
 import ru.practicum.ewm.dto.UpdateEventByAdminDto;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.util.PrintLogs;
-import ru.practicum.ewm.util.PageRequestHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
