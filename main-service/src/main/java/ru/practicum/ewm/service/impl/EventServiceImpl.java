@@ -108,38 +108,13 @@ public class EventServiceImpl implements EventService {
             long userId, long eventId, UpdateParticipationRequestByInitiatorDto changeRequest) {
 
         Event event = eventRepository.findEventById(eventId);
-        if (event.getState() != Event.State.PUBLISHED) {
-            throw new WrongStateException("The event must be in the PUBLISHED state.");
-        }
-
-        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-            throw new BadRequestException("Change request confirmation is not required.");
-        }
+        checkEventState(event);
 
         boolean isConfirmation = changeRequest.getStatus() == UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED;
-        if (isConfirmation) {
-            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
-            int balance = event.getParticipantLimit() - confirmedParticipants - changeRequest.getRequestIds().size();
-            if (balance < 0) {
-                throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + -balance);
-            }
-        }
+        checkRequestConfirmation(event, changeRequest.getRequestIds(), isConfirmation);
 
-        List<ParticipationRequestDto> updatedRequests = changeRequest.getRequestIds().stream()
-                .map(requestId -> {
-                    ParticipationRequest oldRequest = requestRepository.findRequestById(requestId);
-                    if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
-                        throw new ParticipantRequestException("It's not allowed to reject a confirmed participation request");
-                    }
-
-                    ParticipationRequest newRequest = oldRequest.toBuilder()
-                            .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
-                            .build();
-
-                    return oldRequest.getStatus() != newRequest.getStatus() ? requestRepository.save(newRequest) : oldRequest;
-                }).map(participationRequestMapper::toDto)
-                .collect(Collectors.toList());
-
+        List<ParticipationRequest> oldRequests = findParticipationRequests( new HashSet<>(changeRequest.getRequestIds()));
+        List<ParticipationRequestDto> updatedRequests = processParticipationRequests(oldRequests, isConfirmation);
         List<ParticipationRequestDto> confirmedRequests = isConfirmation ? updatedRequests : new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = !isConfirmation ? updatedRequests : new ArrayList<>();
 
@@ -147,6 +122,53 @@ public class EventServiceImpl implements EventService {
                 .confirmedRequests(confirmedRequests)
                 .rejectedRequests(rejectedRequests)
                 .build();
+    }
+
+    private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {
+        return oldRequests.stream()
+                .map(oldRequest -> processRequest(oldRequest, isConfirmation))
+                .map(participationRequestMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private ParticipationRequest processRequest(ParticipationRequest oldRequest, boolean isConfirmation) {
+        if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
+            throw new ParticipantRequestException("It's not allowed to reject a confirmed participation request");
+        }
+
+        ParticipationRequest newRequest = oldRequest.toBuilder()
+                .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
+                .build();
+
+        return (oldRequest.getStatus() != newRequest.getStatus()) ? requestRepository.save(newRequest) : oldRequest;
+    }
+
+    private List<ParticipationRequest>findParticipationRequests(Set<Long> ids){
+        List<ParticipationRequest> requests = requestRepository.findAllById(ids);
+        Set<Long> foundIds = requests.stream().map(ParticipationRequest::getId).collect(Collectors.toSet());
+        if (!ids.equals(foundIds)){
+            throw  new NotFoundException("Not all participation requests found");
+        }
+        return requests;
+    }
+    private void checkEventState(Event event) {
+        if (event.getState() != Event.State.PUBLISHED) {
+            throw new WrongStateException("The event must be in the PUBLISHED state.");
+        }
+
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            throw new BadRequestException("Change request confirmation is not required.");
+        }
+    }
+
+    private void checkRequestConfirmation(Event event, List<Long> requestIds, boolean isConfirmation) {
+        if (isConfirmation) {
+            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
+            int balance = event.getParticipantLimit() - confirmedParticipants - requestIds.size();
+            if (balance < 0) {
+                throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + -balance);
+            }
+        }
     }
 
     @Override

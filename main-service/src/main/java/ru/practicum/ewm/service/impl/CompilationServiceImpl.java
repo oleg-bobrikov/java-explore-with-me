@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.dto.NewCompilationDto;
 import ru.practicum.ewm.dto.UpdateCompilationDto;
+import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.CompilationMapper;
 import ru.practicum.ewm.model.Compilation;
 import ru.practicum.ewm.model.Event;
@@ -30,11 +31,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto adminAddCompilation(NewCompilationDto newCompilationDto) {
-        List<Event> events = newCompilationDto.getEvents()
-                .stream()
-                .map(eventRepository::findEventById)
-                .collect(Collectors.toList());
-
+        List<Event> events = findAllEventsById(newCompilationDto.getEvents());
         Compilation savedCompilation = compilationRepository.save(compilationMapper.toModel(newCompilationDto, events));
 
         return mapToDto(savedCompilation);
@@ -67,13 +64,19 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         if (patch.getEvents() != null) {
-            Set<Event> updatedEvents = patch.getEvents()
-                    .stream()
-                    .map(eventRepository::findEventById)
-                    .collect(Collectors.toSet());
-            compilationBuilder.events(updatedEvents);
+            List<Event> events = findAllEventsById(patch.getEvents());
+            compilationBuilder.events(new HashSet<>(events));
         }
         return compilationBuilder.build();
+    }
+
+    private List<Event> findAllEventsById(Iterable<Long> ids) {
+        List<Event> events = eventRepository.findAllById(ids);
+        Set<Long> foundIds = events.stream().map(Event::getId).collect(Collectors.toSet());
+        if (!ids.equals(foundIds)) {
+            throw new NotFoundException("Not all events found");
+        }
+        return events;
     }
 
     @Override
