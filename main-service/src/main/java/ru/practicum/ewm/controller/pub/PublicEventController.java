@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.common.Constant.*;
 
@@ -50,10 +51,7 @@ public class PublicEventController {
         }
 
         if (categories != null) {
-            log.info("filtered by categories:");
-            for (long categoryId : categories) {
-                log.info("category ID: {}", categoryId);
-            }
+            log.info("filtered by category IDs: {}", categories.stream().map(String::valueOf).collect(Collectors.joining(", ")));
         }
 
         if (paid != null) {

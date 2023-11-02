@@ -2,6 +2,7 @@ package ru.practicum.ewm.controller.pub;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.CategoryDto;
 
@@ -20,6 +21,7 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 @Slf4j
 @RequestMapping(path = "/categories")
 @RequiredArgsConstructor
+@Validated
 public class PublicCategoryController {
     private final CategoryService categoryService;
     private final PrintLogs printLogs;

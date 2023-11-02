@@ -57,7 +57,8 @@ public class EventServiceImpl implements EventService {
         Category category = categoryRepository.findCategoryById(newEventDto.getCategory());
         Event event = eventMapper.toModel(newEventDto, category, initiator);
         Event savedEvent = eventRepository.save(event);
-        return mapToEventFullDto(List.of(savedEvent)).get(0);
+        List<EventFullDto> eventFullDtoList = mapToEventFullDto(List.of(savedEvent));
+        return eventFullDtoList.isEmpty() ? null : eventFullDtoList.get(0);
     }
 
     @Override
@@ -122,54 +123,6 @@ public class EventServiceImpl implements EventService {
                 .confirmedRequests(confirmedRequests)
                 .rejectedRequests(rejectedRequests)
                 .build();
-    }
-
-    private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {
-        return oldRequests.stream()
-                .map(oldRequest -> processRequest(oldRequest, isConfirmation))
-                .map(participationRequestMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    private ParticipationRequest processRequest(ParticipationRequest oldRequest, boolean isConfirmation) {
-        if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
-            throw new ParticipantRequestException("It's not allowed to reject a confirmed participation request");
-        }
-
-        ParticipationRequest newRequest = oldRequest.toBuilder()
-                .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
-                .build();
-
-        return (oldRequest.getStatus() != newRequest.getStatus()) ? requestRepository.save(newRequest) : oldRequest;
-    }
-
-    private List<ParticipationRequest> findParticipationRequests(Set<Long> ids) {
-        List<ParticipationRequest> requests = requestRepository.findAllById(ids);
-        Set<Long> foundIds = requests.stream().map(ParticipationRequest::getId).collect(Collectors.toSet());
-        if (!ids.equals(foundIds)) {
-            throw new NotFoundException("Not all participation requests found");
-        }
-        return requests;
-    }
-
-    private void checkEventState(Event event) {
-        if (event.getState() != Event.State.PUBLISHED) {
-            throw new WrongStateException("The event must be in the PUBLISHED state.");
-        }
-
-        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-            throw new BadRequestException("Change request confirmation is not required.");
-        }
-    }
-
-    private void checkRequestConfirmation(Event event, List<Long> requestIds, boolean isConfirmation) {
-        if (isConfirmation) {
-            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
-            int balance = event.getParticipantLimit() - confirmedParticipants - requestIds.size();
-            if (balance < 0) {
-                throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + -balance);
-            }
-        }
     }
 
     @Override
@@ -270,6 +223,76 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public EventFullDto findPublishedEventById(long id, String uri, String ip) {
+
+        Event event = eventRepository.findPublishedEventById(id).orElseThrow(
+                () -> new NotFoundException(
+                        String.format("No published event found with identifier %s", id)));
+        log.info("Trying to send request {} from ip {} to statistic service", uri, ip);
+        sendToStats(uri, ip);
+
+        return mapToEventFullDto(List.of(event)).get(0);
+    }
+
+    private void sendToStats(String uri, String ip) {
+        EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
+                .app(app)
+                .uri(uri)
+                .ip(ip)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        statsClient.createHit(endpointHitRequestDto);
+    }
+
+    private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {
+        return oldRequests.stream()
+                .map(oldRequest -> processRequest(oldRequest, isConfirmation))
+                .map(participationRequestMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private ParticipationRequest processRequest(ParticipationRequest oldRequest, boolean isConfirmation) {
+        if (oldRequest.getStatus() == ParticipationRequest.Status.CONFIRMED && !isConfirmation) {
+            throw new ParticipantRequestException("It's not allowed to reject a confirmed participation request");
+        }
+
+        ParticipationRequest newRequest = oldRequest.toBuilder()
+                .status(isConfirmation ? ParticipationRequest.Status.CONFIRMED : ParticipationRequest.Status.REJECTED)
+                .build();
+
+        return (oldRequest.getStatus() != newRequest.getStatus()) ? requestRepository.save(newRequest) : oldRequest;
+    }
+
+    private List<ParticipationRequest> findParticipationRequests(Set<Long> ids) {
+        List<ParticipationRequest> requests = requestRepository.findAllById(ids);
+        Set<Long> foundIds = requests.stream().map(ParticipationRequest::getId).collect(Collectors.toSet());
+        if (!ids.equals(foundIds)) {
+            throw new NotFoundException("Not all participation requests found");
+        }
+        return requests;
+    }
+
+    private void checkEventState(Event event) {
+        if (event.getState() != Event.State.PUBLISHED) {
+            throw new WrongStateException("The event must be in the PUBLISHED state.");
+        }
+
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            throw new BadRequestException("Change request confirmation is not required.");
+        }
+    }
+
+    private void checkRequestConfirmation(Event event, List<Long> requestIds, boolean isConfirmation) {
+        if (isConfirmation) {
+            int confirmedParticipants = requestRepository.confirmedParticipantsByEvent(event);
+            int balance = event.getParticipantLimit() - confirmedParticipants - requestIds.size();
+            if (balance < 0) {
+                throw new ParticipantRequestException("It is necessary to increase participant limit to confirm requests by " + -balance);
+            }
+        }
+    }
 
     private List<EventFullDto> mapToEventFullDto(List<Event> events) {
         Set<Long> eventIds = events.stream()
@@ -396,28 +419,5 @@ public class EventServiceImpl implements EventService {
         }
 
         return eventBuilder.build();
-    }
-
-    @Override
-    public EventFullDto findPublishedEventById(long id, String uri, String ip) {
-
-        Event event = eventRepository.findPublishedEventById(id).orElseThrow(
-                () -> new NotFoundException(
-                        String.format("No published event found with identifier %s", id)));
-        log.info("Trying to send request {} from ip {} to statistic service", uri, ip);
-        sendToStats(uri, ip);
-
-        return mapToEventFullDto(List.of(event)).get(0);
-    }
-
-    private void sendToStats(String uri, String ip) {
-        EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
-                .app(app)
-                .uri(uri)
-                .ip(ip)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        statsClient.createHit(endpointHitRequestDto);
     }
 }

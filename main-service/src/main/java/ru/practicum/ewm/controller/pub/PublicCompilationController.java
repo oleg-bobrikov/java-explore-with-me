@@ -2,6 +2,7 @@ package ru.practicum.ewm.controller.pub;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.service.CompilationService;
@@ -18,6 +19,7 @@ import static ru.practicum.ewm.common.Constant.*;
 @Slf4j
 @RequestMapping(path = "/compilations")
 @RequiredArgsConstructor
+@Validated
 public class PublicCompilationController {
     private final CompilationService compilationService;
     private final PrintLogs printLogs;
