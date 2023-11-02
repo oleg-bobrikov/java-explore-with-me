@@ -113,7 +113,7 @@ public class EventServiceImpl implements EventService {
         boolean isConfirmation = changeRequest.getStatus() == UpdateParticipationRequestByInitiatorDto.Status.CONFIRMED;
         checkRequestConfirmation(event, changeRequest.getRequestIds(), isConfirmation);
 
-        List<ParticipationRequest> oldRequests = findParticipationRequests( new HashSet<>(changeRequest.getRequestIds()));
+        List<ParticipationRequest> oldRequests = findParticipationRequests(new HashSet<>(changeRequest.getRequestIds()));
         List<ParticipationRequestDto> updatedRequests = processParticipationRequests(oldRequests, isConfirmation);
         List<ParticipationRequestDto> confirmedRequests = isConfirmation ? updatedRequests : new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = !isConfirmation ? updatedRequests : new ArrayList<>();
@@ -143,14 +143,15 @@ public class EventServiceImpl implements EventService {
         return (oldRequest.getStatus() != newRequest.getStatus()) ? requestRepository.save(newRequest) : oldRequest;
     }
 
-    private List<ParticipationRequest>findParticipationRequests(Set<Long> ids){
+    private List<ParticipationRequest> findParticipationRequests(Set<Long> ids) {
         List<ParticipationRequest> requests = requestRepository.findAllById(ids);
         Set<Long> foundIds = requests.stream().map(ParticipationRequest::getId).collect(Collectors.toSet());
-        if (!ids.equals(foundIds)){
-            throw  new NotFoundException("Not all participation requests found");
+        if (!ids.equals(foundIds)) {
+            throw new NotFoundException("Not all participation requests found");
         }
         return requests;
     }
+
     private void checkEventState(Event event) {
         if (event.getState() != Event.State.PUBLISHED) {
             throw new WrongStateException("The event must be in the PUBLISHED state.");

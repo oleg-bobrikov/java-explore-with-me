@@ -23,7 +23,7 @@ public class PrintLogs {
         }
     }
 
-    public void printUrl(HttpServletRequest httpServletRequest){
+    public void printUrl(HttpServletRequest httpServletRequest) {
         log.info("{}: {}", httpServletRequest.getMethod(), httpServletRequest.getRequestURI());
     }
 }
