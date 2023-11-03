@@ -13,14 +13,8 @@ import ru.practicum.ewm.exception.*;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.mapper.ParticipationRequestMapper;
-import ru.practicum.ewm.model.Category;
-import ru.practicum.ewm.model.Event;
-import ru.practicum.ewm.model.ParticipationRequest;
-import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.ParticipationRequestRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.model.*;
+import ru.practicum.ewm.repository.*;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
@@ -48,6 +42,7 @@ public class EventServiceImpl implements EventService {
     private final ParticipationRequestRepository requestRepository;
     private final StatsClient statsClient;
     private final ParticipationRequestMapper participationRequestMapper;
+    private final LocationTypeRepository locationTypeRepository;
 
     @Value("${app.name}")
     private String app;
@@ -56,7 +51,14 @@ public class EventServiceImpl implements EventService {
     public EventFullDto initiatorAddEvent(long userId, NewEventDto newEventDto) {
         User initiator = userRepository.findUserById(userId);
         Category category = categoryRepository.findCategoryById(newEventDto.getCategory());
-        Event event = eventMapper.toModel(newEventDto, category, initiator);
+        Long locationTypeId = newEventDto.getLocation().getType();
+        LocationType locationType = locationTypeId == null
+                ? null
+                : locationTypeRepository.findLocationTypeById(locationTypeId);
+        Location location = locationMapper.toModel(newEventDto.getLocation(), locationType);
+        EventDto eventDto = eventMapper.toEventDto(newEventDto, initiator, category, location);
+
+        Event event = eventMapper.toModel(eventDto);
         Event savedEvent = eventRepository.save(event);
         List<EventFullDto> eventFullDtoList = mapToEventFullDto(List.of(savedEvent));
         return eventFullDtoList.isEmpty() ? null : eventFullDtoList.get(0);
@@ -392,7 +394,11 @@ public class EventServiceImpl implements EventService {
         }
 
         if (patch.getLocation() != null) {
-            eventBuilder.location(locationMapper.toModel(patch.getLocation()));
+            NewLocationDto newLocationDto = patch.getLocation();
+            LocationType locationType = newLocationDto.getType() == null
+                    ? null :
+                    locationTypeRepository.findLocationTypeById(newLocationDto.getType());
+            eventBuilder.location(locationMapper.toModel(newLocationDto, locationType));
         }
 
         if (patch.getPaid() != null) {
