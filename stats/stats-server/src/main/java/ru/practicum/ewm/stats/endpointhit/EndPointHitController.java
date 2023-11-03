@@ -7,16 +7,16 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.ewm.stats.dto.EndpointHitResponseDto;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
-
 
 import javax.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
+
 
 import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 
@@ -43,9 +43,13 @@ public class EndPointHitController {
     @ResponseStatus(HttpStatus.OK)
     public List<ViewStatsResponseDto> getStatistics(@RequestParam @DateTimeFormat(pattern = DATE_TIME_PATTERN) LocalDateTime start,
                                                     @RequestParam @DateTimeFormat(pattern = DATE_TIME_PATTERN) LocalDateTime end,
-                                                    @RequestParam(required = false) Set<String> uris,
+                                                    @RequestParam(required = false) List<String> uris,
                                                     @RequestParam(defaultValue = "false") boolean unique) {
         log.info("Get statistics start={}, end={}, uris={}, unique={}", start, end, uris, unique);
+        if (end.isBefore(start)) {
+            log.error("start date {} should be before or equal the end date {}", start, end);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "end date should be after or equal the start date");
+        }
         return endpointHitService.getStatistics(start, end, uris, unique);
     }
 }
