@@ -5,13 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryDto {
-    private Long id;
+public class NewLocationTypeDto {
     private String name;
 }

@@ -40,6 +40,9 @@ public class PublicEventController {
                                    @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_PATTERN) LocalDateTime rangeEnd,
                                    @RequestParam(defaultValue = "false") boolean onlyAvailable,
                                    @RequestParam(defaultValue = SORT_DEFAULT) Event.Sort sort,
+                                   @RequestParam(required = false) Float latitude,
+                                   @RequestParam(required = false) Float longitude,
+                                   @RequestParam(defaultValue = LOCATION_SEARCH_RADIUS_IN_METERS) int radiusInMeters,
                                    @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
                                    @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
                                    HttpServletRequest httpServletRequest) {
@@ -72,6 +75,10 @@ public class PublicEventController {
             log.info("sorted by: {}", sort);
         }
 
+        if (latitude != null && longitude != null) {
+            log.info("searched by location({},{}) within in radius of {} meters", latitude, longitude, radiusInMeters);
+        }
+
         log.info("from: {}", from);
         log.info("size: {}", size);
 
@@ -82,6 +89,9 @@ public class PublicEventController {
                 .categoryIds(categories)
                 .onlyAvailable(onlyAvailable)
                 .sort(sort)
+                .latitude(latitude)
+                .longitude(longitude)
+                .radiusInMeters(radiusInMeters)
                 .from(from)
                 .size(size)
                 .paid(paid)

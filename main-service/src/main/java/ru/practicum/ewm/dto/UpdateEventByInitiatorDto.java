@@ -34,7 +34,7 @@ public class UpdateEventByInitiatorDto implements UpdateEventDto {
     private LocalDateTime eventDate;
 
     @Valid
-    private LocationDto location;
+    private NewLocationDto location;
 
     private Boolean paid;
 

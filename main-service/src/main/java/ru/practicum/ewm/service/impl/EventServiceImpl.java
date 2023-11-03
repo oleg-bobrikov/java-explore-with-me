@@ -25,6 +25,7 @@ import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.model.Event.EventBuilder;
+import ru.practicum.ewm.util.Geo;
 import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.time.LocalDateTime;
@@ -127,16 +128,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> findEvents(EventPublicFilterDto filter) {
-        LocalDateTime rangeStart = filter.getRangeStart();
+        validateCoordinates(filter.getLatitude(), filter.getLongitude());
+
+        LocalDateTime rangeStart = getValidRangeStart(filter.getRangeStart());
         LocalDateTime rangeEnd = filter.getRangeEnd();
 
-        if (rangeStart == null) {
-            rangeStart = LocalDateTime.now();
-        }
+        validateDateRange(rangeStart, rangeEnd);
 
-        if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
-            throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
-        }
         PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
         List<Event> events = eventRepository.findAllByFilter(
                 filter.getText(),
@@ -145,12 +143,18 @@ public class EventServiceImpl implements EventService {
                 rangeStart,
                 rangeEnd,
                 filter.isOnlyAvailable(),
-                page);
+                page
+        );
 
         sendToStats(filter.getUri(), filter.getIp());
 
-        return mapToEventShortDto(events, filter.getSort());
+        if (filter.getLatitude() == null) {
+            return mapToEventShortDto(events, filter.getSort());
+        } else {
+            return mapToEventShortDto(filterEventsWithinRadius(events, filter.getLatitude(), filter.getLongitude(), filter.getRadiusInMeters()), filter.getSort());
+        }
     }
+
 
     @Override
     public List<EventFullDto> adminFindEvents(EventAdminFilterDto filter) {
@@ -244,6 +248,35 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         statsClient.createHit(endpointHitRequestDto);
+    }
+
+    private void validateCoordinates(Float latitude, Float longitude) {
+        if ((latitude != null && longitude == null) || (longitude != null && latitude == null)) {
+            throw new BadRequestException("Incorrect latitude or longitude value");
+        }
+    }
+
+    private LocalDateTime getValidRangeStart(LocalDateTime rangeStart) {
+        if (rangeStart == null) {
+            return LocalDateTime.now();
+        }
+        return rangeStart;
+    }
+
+    private void validateDateRange(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+        if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
+            throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
+        }
+    }
+
+    private List<Event> filterEventsWithinRadius(List<Event> events, float latitude, float longitude, double radius) {
+        return events.stream()
+                .filter(event -> Geo.distance(event.getLocation().getLat(),
+                        event.getLocation().getLon(),
+                        latitude,
+                        longitude,
+                        Geo.Unit.METER) <= radius)
+                .collect(Collectors.toList());
     }
 
     private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {

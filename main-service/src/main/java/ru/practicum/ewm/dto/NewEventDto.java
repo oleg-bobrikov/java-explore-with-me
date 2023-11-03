@@ -36,7 +36,7 @@ public class NewEventDto {
 
     @NotNull
     @Valid
-    private LocationDto location;
+    private NewLocationDto location;
 
     private boolean paid;
 

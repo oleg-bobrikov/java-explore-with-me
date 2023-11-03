@@ -1,9 +1,6 @@
 package ru.practicum.ewm.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -23,4 +20,11 @@ public class Location {
 
     @Column(name = "lon", nullable = false)
     private float lon;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id")
+    @ToString.Exclude
+    private LocationType type;
+
+    private int radiusInMeters;
 }

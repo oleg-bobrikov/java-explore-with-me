@@ -15,7 +15,7 @@ import static ru.practicum.ewm.common.Constant.DATE_TIME_PATTERN;
 @SuperBuilder(toBuilder = true)
 public class EventFullDto extends EventShortDto {
     private String description;
-    private LocationDto location;
+    private NewLocationDto location;
     private Event.State state;
 
     @JsonFormat(pattern = DATE_TIME_PATTERN)

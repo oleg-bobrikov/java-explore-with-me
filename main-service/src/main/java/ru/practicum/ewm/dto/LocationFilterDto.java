@@ -5,13 +5,18 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import java.util.Set;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryDto {
-    private Long id;
-    private String name;
+public class LocationFilterDto {
+    float latMin;
+    float latMax;
+    float lonMin;
+    float lonMax;
+    int from;
+    int size;
+    Set<Long> types;
 }
