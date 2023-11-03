@@ -6,11 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Location;
-import ru.practicum.ewm.model.LocationType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface LocationRepository extends JpaRepository<Location, Long> {
     default Location findLocationById(long id) {

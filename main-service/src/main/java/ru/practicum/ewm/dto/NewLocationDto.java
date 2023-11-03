@@ -4,7 +4,6 @@ import lombok.Builder;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import ru.practicum.ewm.model.LocationType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

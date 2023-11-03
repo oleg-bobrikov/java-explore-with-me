@@ -66,7 +66,7 @@ public class AdminLocationController {
 
         printLogs.printUrl(httpServletRequest);
         log.info("Attempt to update location ID {}", id);
-        String message = String.format("Administrator update location ID: %s by patch", id, patch);
+        String message = String.format("Administrator update location ID: %s by patch", id);
         printLogs.printObject(patch, message);
         return locationService.adminUpdateLocation(id, patch);
     }
