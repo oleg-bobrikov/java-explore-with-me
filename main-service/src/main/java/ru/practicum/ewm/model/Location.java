@@ -22,7 +22,7 @@ public class Location {
     private float lon;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ToString.Exclude
     private LocationType type;

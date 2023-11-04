@@ -145,16 +145,14 @@ public class EventServiceImpl implements EventService {
                 rangeStart,
                 rangeEnd,
                 filter.isOnlyAvailable(),
+                filter.getLatitude(),
+                filter.getLongitude(),
+                filter.getRadiusInMeters(),
                 page
         );
 
         sendToStats(filter.getUri(), filter.getIp());
-
-        if (filter.getLatitude() == null) {
-            return mapToEventShortDto(events, filter.getSort());
-        } else {
-            return mapToEventShortDto(filterEventsWithinRadius(events, filter.getLatitude(), filter.getLongitude(), filter.getRadiusInMeters()), filter.getSort());
-        }
+        return mapToEventShortDto(events, filter.getSort());
     }
 
 

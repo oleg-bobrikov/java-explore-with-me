@@ -23,7 +23,7 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 public class PublicLocationTypeController {
     private final PrintLogs printLogs;
     private final LocationService locationService;
-    @GetMapping(path = "{/id}")
+    @GetMapping(path = "/{id}")
     public LocationTypeDto adminGetLocationType(@PathVariable @Positive long id, HttpServletRequest httpServletRequest) {
         printLogs.printUrl(httpServletRequest);
         log.info("Attempt to get location type  by ID {}", id);
