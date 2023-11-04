@@ -9,6 +9,7 @@
 - PostgreSQL
 - Docker
 - Maven
+- Postman
 
 ---
 
