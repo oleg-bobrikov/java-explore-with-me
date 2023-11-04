@@ -59,6 +59,8 @@ Each GET event request is saved in the statistics service.
 
 ![Diagram](stats-db.png)
 
+![Diagram](earcht.gif)
+
 ---
 
 ### PR [Link](https://github.com/oleg-bobrikov/java-explore-with-me/pull/5)
