@@ -49,13 +49,13 @@ Each GET event request is saved in the statistics service.
 
 ## Main Service Database Schema
 
-[View Schema](https://dbdiagram.io/d/explore-with-me-654191b67d8bbd64653c2052)
+[View Schema](https://github.com/oleg-bobrikov/java-explore-with-me/blob/899090e983856e918a31890460bf209a1c41ca2d/main-serivce-schema-db.png)
 
 ![Diagram](main-serivce-schema-db.png)
 
 ## Stats Service Database Schema
 
-[View Schema](https://dbdiagram.io/d/explore-with-me-stats-65469ec17d8bbd64657d8f1c)
+[View Schema](https://github.com/oleg-bobrikov/java-explore-with-me/blob/899090e983856e918a31890460bf209a1c41ca2d/stats-db.png)
 
 ![Diagram](stats-db.png)
 
