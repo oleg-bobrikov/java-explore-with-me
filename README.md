@@ -11,6 +11,7 @@
 - Maven
 ---
 
+## Description
 Free time is a valuable resource. Every day, we plan how to spend it – where to go and with whom.  
 The most challenging part of this planning is finding information and negotiating.  
 You need to consider many details: what events are planned, whether friends are available at that moment,  
