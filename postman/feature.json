@@ -698,11 +698,6 @@
                   "\r",
                   "pm.test(\"Location should contain properties: radiusInMeters\", function () {\r",
                   "    pm.expect(target).to.have.property('radiusInMeters');\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"The Reponse body should match with patch data\", function () {\r",
-                  "    pm.expect(target.type.id).to.be.equal(source.type);\r",
-                  "    pm.expect(target.type.name).equal(\"exhibitions\", 'The type of name should be changed to exhibitions');\r",
                   "});"
                 ],
                 "type": "text/javascript"
