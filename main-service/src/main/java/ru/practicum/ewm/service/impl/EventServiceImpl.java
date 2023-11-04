@@ -19,7 +19,6 @@ import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.model.Event.EventBuilder;
-import ru.practicum.ewm.util.Geo;
 import ru.practicum.ewm.util.PageRequestHelper;
 
 import java.time.LocalDateTime;
