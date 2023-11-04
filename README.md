@@ -53,3 +53,6 @@ Each GET event request saved in statistics service.
 ## stat-service database schema (https://dbdiagram.io/d/explore-with-me-stats-65469ec17d8bbd64657d8f1c)
 ![Diagram](stats-db.png)
 ---
+
+### PR https://github.com/oleg-bobrikov/java-explore-with-me/pull/5
+
