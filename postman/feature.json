@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7546d0e1-8261-4d04-bdaa-ff8916330ba2",
     "name": "Location processing",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
     "_exporter_id": "11570135"
   },
   "item": [
@@ -52,17 +52,7 @@
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/admin/location/types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "location",
-                "types"
-              ]
-            }
+            "url": "{{baseUrl}}/admin/location/types"
           },
           "response": []
         },
@@ -278,17 +268,7 @@
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/admin/location/types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "location",
-                "types"
-              ]
-            }
+            "url": "{{baseUrl}}/admin/location/types"
           },
           "response": []
         },
@@ -365,17 +345,7 @@
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/admin/location/types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "location",
-                "types"
-              ]
-            }
+            "url": "{{baseUrl}}/admin/location/types"
           },
           "response": []
         }
@@ -429,17 +399,7 @@
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/admin/location/types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "location",
-                "types"
-              ]
-            }
+            "url": "{{baseUrl}}/admin/location/types"
           },
           "response": []
         },
@@ -621,9 +581,12 @@
                   "const source = JSON.parse(pm.request.body.raw);\r",
                   "const target = pm.response.json();\r",
                   "\r",
-                  "pm.test(\"Location should contain properties: type.name\", function () {\r",
+                  "pm.test(\"Location should contain properties: type\", function () {\r",
                   "    pm.expect(target).to.have.property('type');\r",
-                  "    pm.expect(target.type).to.have.property(\"name\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Location should contain properties: radiusInMeters\", function () {\r",
+                  "    pm.expect(target).to.have.property('radiusInMeters');\r",
                   "});\r",
                   "\r",
                   "\r",
@@ -729,11 +692,13 @@
                   "const source = JSON.parse(pm.request.body.raw);\r",
                   "const target = pm.response.json();\r",
                   "\r",
-                  "pm.test(\"Location should contain properties: type.name\", function () {\r",
+                  "pm.test(\"Location should contain properties: type\", function () {\r",
                   "    pm.expect(target).to.have.property('type');\r",
-                  "    pm.expect(target.type).to.have.property(\"name\");\r",
                   "});\r",
                   "\r",
+                  "pm.test(\"Location should contain properties: radiusInMeters\", function () {\r",
+                  "    pm.expect(target).to.have.property('radiusInMeters');\r",
+                  "});\r",
                   "\r",
                   "pm.test(\"The Reponse body should match with patch data\", function () {\r",
                   "    pm.expect(target.type.id).to.be.equal(source.type);\r",
