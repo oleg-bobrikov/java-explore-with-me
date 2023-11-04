@@ -269,16 +269,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private List<Event> filterEventsWithinRadius(List<Event> events, float latitude, float longitude, double radius) {
-        return events.stream()
-                .filter(event -> Geo.distance(event.getLocation().getLat(),
-                        event.getLocation().getLon(),
-                        latitude,
-                        longitude,
-                        Geo.Unit.METER) <= radius)
-                .collect(Collectors.toList());
-    }
-
     private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {
         return oldRequests.stream()
                 .map(oldRequest -> processRequest(oldRequest, isConfirmation))
