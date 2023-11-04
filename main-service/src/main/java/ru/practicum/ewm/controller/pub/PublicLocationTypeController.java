@@ -15,6 +15,7 @@ import java.util.List;
 
 import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_FROM;
 import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
+
 @RestController
 @Slf4j
 @RequestMapping(path = "/location/types")
@@ -23,6 +24,7 @@ import static ru.practicum.ewm.common.Constant.PAGE_DEFAULT_SIZE;
 public class PublicLocationTypeController {
     private final PrintLogs printLogs;
     private final LocationService locationService;
+
     @GetMapping(path = "/{id}")
     public LocationTypeDto adminGetLocationType(@PathVariable @Positive long id, HttpServletRequest httpServletRequest) {
         printLogs.printUrl(httpServletRequest);
@@ -32,10 +34,10 @@ public class PublicLocationTypeController {
     }
 
     @GetMapping
-    public List<LocationTypeDto> findLocationTypes(@RequestParam (required = false) String text,
-                                                        @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
-                                                        @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
-                                                        HttpServletRequest httpServletRequest) {
+    public List<LocationTypeDto> findLocationTypes(@RequestParam(required = false) String text,
+                                                   @RequestParam(defaultValue = PAGE_DEFAULT_FROM) @PositiveOrZero int from,
+                                                   @RequestParam(defaultValue = PAGE_DEFAULT_SIZE) @Positive int size,
+                                                   HttpServletRequest httpServletRequest) {
         printLogs.printUrl(httpServletRequest);
         if (text == null) {
             log.info("Attempt to get all location types ");
