@@ -12,7 +12,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CompilationMapper {
-    @Mapping(target = "id", expression = "java(null)")
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "events", source = "events")
     Compilation toModel(NewCompilationDto newCompilationDto, List<Event> events);
 

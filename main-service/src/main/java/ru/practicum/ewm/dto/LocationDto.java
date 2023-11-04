@@ -5,15 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.practicum.ewm.model.LocationType;
-
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationDto {
-    long id;
+    private long id;
     private float lat;
     private float lon;
+
     private LocationType type;
     private int radiusInMeters;
 }

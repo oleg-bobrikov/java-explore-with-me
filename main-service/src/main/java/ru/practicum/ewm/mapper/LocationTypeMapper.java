@@ -12,6 +12,6 @@ import java.util.List;
 public interface LocationTypeMapper {
     LocationTypeDto toDto(LocationType locationType);
     List<LocationTypeDto> toDto(List<LocationType> category);
-    @Mapping(target = "id", expression = "java(null)")
+    @Mapping(target = "id", ignore = true)
     LocationType toModel(NewLocationTypeDto locationTypeDto);
 }

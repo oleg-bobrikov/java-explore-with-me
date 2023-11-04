@@ -13,9 +13,11 @@ public interface LocationService {
 
     LocationDto adminUpdateLocation(long id, UpdateLocationDto patch);
 
-    List<LocationDto> adminFindLocations(LocationFilterDto filter);
-
-    List<LocationDto> getLocations(int from, int size);
+    List<LocationDto> findLocations(LocationFilterDto filter);
 
     LocationDto getLocation(long id);
+
+    LocationTypeDto adminGetLocationType(long id);
+
+    List<LocationTypeDto> adminFindLocationTypes(String text, int from, int size);
 }

@@ -15,13 +15,11 @@ public interface LocationMapper {
     LocationDto toDto(Location location);
 
     List<LocationDto> toDto(List<Location> location);
-    @Mapping(target = "id", expression = "java(null)")
+
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "lat", source = "locationDto.lat")
     @Mapping(target = "lon", source = "locationDto.lon")
     @Mapping(target = "radiusInMeters", source = "locationDto.radiusInMeters")
     @Mapping(target = "type", source = "locationType")
     Location toModel(NewLocationDto locationDto, LocationType locationType);
-
-    @Mapping(target = "type", source = "location.type.id")
-    NewLocationDto toNewDto(Location location);
 }

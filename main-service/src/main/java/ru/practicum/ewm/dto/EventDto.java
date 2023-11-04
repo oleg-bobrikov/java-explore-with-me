@@ -23,6 +23,6 @@ public class EventDto {
     private User initiator;
     private boolean paid;
     private int participantLimit;
-    private boolean requestModeration = true;
+    private boolean requestModeration;
     private String title;
 }

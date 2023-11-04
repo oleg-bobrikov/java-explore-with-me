@@ -21,8 +21,9 @@ public class Location {
     @Column(name = "lon", nullable = false)
     private float lon;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id")
+    @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ToString.Exclude
     private LocationType type;
 

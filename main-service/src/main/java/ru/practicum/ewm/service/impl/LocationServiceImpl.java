@@ -54,7 +54,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<LocationDto> adminFindLocations(LocationFilterDto filter) {
+    public List<LocationDto> findLocations(LocationFilterDto filter) {
         PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
         List<Location> locations = locationRepository.findLocations(
                 filter.getLatMin(),
@@ -67,14 +67,19 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<LocationDto> getLocations(int from, int size) {
-        PageRequest page = PageRequestHelper.of(from, size);
-        return locationMapper.toDto(locationRepository.findAll(page).getContent());
+    public LocationDto getLocation(long id) {
+        return locationMapper.toDto(locationRepository.findLocationById(id));
     }
 
     @Override
-    public LocationDto getLocation(long id) {
-        return locationMapper.toDto(locationRepository.findLocationById(id));
+    public LocationTypeDto adminGetLocationType(long id) {
+        return locationTypeMapper.toDto(locationTypeRepository.findLocationTypeById(id));
+    }
+
+    @Override
+    public List<LocationTypeDto> adminFindLocationTypes(String text, int from, int size) {
+        PageRequest page = PageRequestHelper.of(from, size);
+        return locationTypeMapper.toDto(locationTypeRepository.findLocationTypesByText(text, page));
     }
 
     private Location applyPatch(Location location, UpdateLocationDto patch) {
