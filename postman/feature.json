@@ -404,6 +404,185 @@
           "response": []
         },
         {
+          "name": "Admin add location VDNH Moscow with location type=exhibitions",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {\r",
+                  "    const api = new API(pm);\r",
+                  "    const rnd = new RandomUtils();\r",
+                  "\r",
+                  "    try {\r",
+                  "        locationTypeId  = pm.collectionVariables.get(\"locationTypeId\");\r",
+                  "        pm.request.body.update({\r",
+                  "            mode: 'raw',\r",
+                  "            raw: JSON.stringify(\r",
+                  "                {type: locationTypeId,\r",
+                  "                lat: 55.826249, \r",
+                  "                lon: 37.637578,\r",
+                  "                radiusInMeters: 3000\r",
+                  "                \r",
+                  "                }),\r",
+                  "            options: { raw: { language: 'json' } }\r",
+                  "        });\r",
+                  "    } catch(err) {\r",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+                  "    }\r",
+                  "};\r",
+                  "\r",
+                  "const interval = setInterval(() => {}, 1000);\r",
+                  "\r",
+                  "setTimeout(async () => \r",
+                  "    {\r",
+                  "        try {\r",
+                  "            // выполняем наш скрипт\r",
+                  "            await main();\r",
+                  "        } catch (e) {\r",
+                  "            console.error(e);\r",
+                  "        } finally {\r",
+                  "            clearInterval(interval);\r",
+                  "        }\r",
+                  "    },  \r",
+                  "    100 \r",
+                  ");"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response should contain status code 200 with body in json format\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const source = JSON.parse(pm.request.body.raw);\r",
+                  "const target = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Location should contain properties: type\", function () {\r",
+                  "    pm.expect(target).to.have.property('type');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Location should contain properties: radiusInMeters\", function () {\r",
+                  "    pm.expect(target).to.have.property('radiusInMeters');\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"locationId\", target.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{{request_body}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/admin/locations"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin is getting location by ID={{locationId}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response should contain status code 200 with body in json format\", function () {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const target = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Location should contain properties: id, name\", function () {\r",
+                  "    pm.expect(target).to.have.property('id');\r",
+                  "    pm.expect(target).to.have.property('lat');\r",
+                  "    pm.expect(target).to.have.property('lon');\r",
+                  "    pm.expect(target).to.have.property('type');\r",
+                  "    pm.expect(target).to.have.property('radiusInMeters');\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/:locationId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "locations",
+                ":locationId"
+              ],
+              "variable": [
+                {
+                  "key": "locationId",
+                  "value": "{{locationId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin delete location ID={{locationId}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response should contain status code 204 with body in json format\", function () {\r",
+                  "    pm.response.to.have.status(204);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "locations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{locationId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "User add new event with location type ID =1",
           "event": [
             {
