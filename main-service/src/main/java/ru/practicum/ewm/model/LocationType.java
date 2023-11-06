@@ -19,5 +19,5 @@ public class LocationType {
     private Long id;
 
     @Column(name = "name", nullable = false, unique = true)
-    String name;
+    private String name;
 }

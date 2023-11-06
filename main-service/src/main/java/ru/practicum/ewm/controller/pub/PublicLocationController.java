@@ -36,7 +36,7 @@ public class PublicLocationController {
     }
 
     @GetMapping
-    List<LocationDto> findLocations(@RequestParam(defaultValue = "-90") float latMin,
+    public List<LocationDto> findLocations(@RequestParam(defaultValue = "-90") float latMin,
                                     @RequestParam(defaultValue = "90") float latMax,
                                     @RequestParam(defaultValue = "-180") float lonMin,
                                     @RequestParam(defaultValue = "180") float lonMax,

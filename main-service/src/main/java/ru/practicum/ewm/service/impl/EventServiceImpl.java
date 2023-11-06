@@ -55,9 +55,7 @@ public class EventServiceImpl implements EventService {
                 ? null
                 : locationTypeRepository.findLocationTypeById(locationTypeId);
         Location location = locationMapper.toModel(newEventDto.getLocation(), locationType);
-        EventDto eventDto = eventMapper.toEventDto(newEventDto, initiator, category, location);
-
-        Event event = eventMapper.toModel(eventDto);
+        Event event = eventMapper.toModel(newEventDto, initiator, category, location);
         Event savedEvent = eventRepository.save(event);
         List<EventFullDto> eventFullDtoList = mapToEventFullDto(List.of(savedEvent));
         return eventFullDtoList.isEmpty() ? null : eventFullDtoList.get(0);
@@ -250,7 +248,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void validateCoordinates(Float latitude, Float longitude) {
-        if ((latitude != null && longitude == null) || (longitude != null && latitude == null)) {
+        if ((latitude == null && longitude != null) || (latitude != null && longitude == null)) {
             throw new BadRequestException("Incorrect latitude or longitude value");
         }
     }

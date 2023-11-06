@@ -3,6 +3,7 @@ package ru.practicum.ewm.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.mapper.LocationTypeMapper;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class LocationServiceImpl implements LocationService {
     private final LocationTypeRepository locationTypeRepository;
     private final LocationTypeMapper locationTypeMapper;
@@ -54,6 +56,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LocationDto> findLocations(LocationFilterDto filter) {
         PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
         List<Location> locations = locationRepository.findLocations(
@@ -67,16 +70,19 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LocationDto getLocation(long id) {
         return locationMapper.toDto(locationRepository.findLocationById(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LocationTypeDto adminGetLocationType(long id) {
         return locationTypeMapper.toDto(locationTypeRepository.findLocationTypeById(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LocationTypeDto> adminFindLocationTypes(String text, int from, int size) {
         PageRequest page = PageRequestHelper.of(from, size);
         return locationTypeMapper.toDto(locationTypeRepository.findLocationTypesByText(text, page));

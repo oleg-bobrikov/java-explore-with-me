@@ -12,11 +12,11 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationFilterDto {
-    float latMin;
-    float latMax;
-    float lonMin;
-    float lonMax;
-    int from;
-    int size;
-    Set<Long> types;
+    private float latMin;
+    private float latMax;
+    private float lonMin;
+    private float lonMax;
+    private int from;
+    private int size;
+    private Set<Long> types;
 }
