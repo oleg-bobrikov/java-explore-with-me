@@ -88,6 +88,19 @@ public class LocationServiceImpl implements LocationService {
         return locationTypeMapper.toDto(locationTypeRepository.findLocationTypesByText(text, page));
     }
 
+    @Override
+    public LocationDto adminAddLocation(NewLocationDto newLocationDto) {
+        LocationType locationType = locationTypeRepository.findLocationTypeById(newLocationDto.getType());
+        Location savedLocation = locationMapper.toModel(newLocationDto, locationType);
+        return locationMapper.toDto(locationRepository.save(savedLocation));
+    }
+
+    @Override
+    public void adminRemoveLocation(long id) {
+        Location location = locationRepository.findLocationById(id);
+        locationRepository.delete(location);
+    }
+
     private Location applyPatch(Location location, UpdateLocationDto patch) {
         Location.LocationBuilder locationBuilder = location.toBuilder();
 

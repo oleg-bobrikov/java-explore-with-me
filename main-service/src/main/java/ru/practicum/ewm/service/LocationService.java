@@ -20,4 +20,8 @@ public interface LocationService {
     LocationTypeDto adminGetLocationType(long id);
 
     List<LocationTypeDto> adminFindLocationTypes(String text, int from, int size);
+
+    LocationDto adminAddLocation(NewLocationDto newLocationDto);
+
+    void adminRemoveLocation(long id);
 }
