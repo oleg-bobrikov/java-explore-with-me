@@ -31,7 +31,7 @@ public class AdminLocationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LocationDto AdminAddLocation(@RequestBody @Valid NewLocationDto newLocationDto,
+    public LocationDto adminAddLocation(@RequestBody @Valid NewLocationDto newLocationDto,
                                         HttpServletRequest httpServletRequest) {
         printLogs.printUrl(httpServletRequest);
         String message = "Administrator is adding location";
