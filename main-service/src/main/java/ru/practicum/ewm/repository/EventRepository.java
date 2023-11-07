@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Event;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -55,15 +56,21 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "   from ParticipationRequest pr " +
             "   where pr.status = 'CONFIRMED' " +
             "   group by pr.event " +
-            "   having min(pr.event.participantLimit) - count(pr.id) > 0 )" +
+            "   having min(pr.event.participantLimit) - count(pr.id) > 0 )) " +
+            "   and (coalesce(:latitude, null) is null or " +
+            "   60 * 1852 * degrees(acos(sin(radians(e.location.lat)) * sin(radians(:latitude)) + " +
+            "   cos(radians(e.location.lat)) * cos(radians(:latitude)) * cos(radians(e.location.lon-:longitude)))) <= :radiusInMeters" +
             ")")
     List<Event> findAllByFilter(@Param("text") String text,
-                                               @Param("categoryIds") Set<Long> categoryIds,
-                                               @Param("paid") Boolean paid,
-                                               @Param("rangeStart") LocalDateTime rangeStart,
-                                               @Param("rangeEnd") LocalDateTime rangeEnd,
-                                               @Param("onlyAvailable") boolean onlyAvailable,
-                                               Pageable page);
+                                @Param("categoryIds") Set<Long> categoryIds,
+                                @Param("paid") Boolean paid,
+                                @Param("rangeStart") LocalDateTime rangeStart,
+                                @Param("rangeEnd") LocalDateTime rangeEnd,
+                                @Param("onlyAvailable") boolean onlyAvailable,
+                                @Param("latitude") Float latitude,
+                                @Param("longitude") Float longitude,
+                                @Param("radiusInMeters") double radiusInMeters,
+                                Pageable page);
 
     @Query("SELECT MIN(e.publishedOn) FROM Event e WHERE e.id IN :eventIds and e.state ='PUBLISHED' ")
     Optional<LocalDateTime> getFirstPublicationDate(@Param("eventIds") Set<Long> eventIds);

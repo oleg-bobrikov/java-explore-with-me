@@ -13,14 +13,8 @@ import ru.practicum.ewm.exception.*;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.mapper.ParticipationRequestMapper;
-import ru.practicum.ewm.model.Category;
-import ru.practicum.ewm.model.Event;
-import ru.practicum.ewm.model.ParticipationRequest;
-import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.ParticipationRequestRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.model.*;
+import ru.practicum.ewm.repository.*;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.stats.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.dto.ViewStatsResponseDto;
@@ -47,6 +41,7 @@ public class EventServiceImpl implements EventService {
     private final ParticipationRequestRepository requestRepository;
     private final StatsClient statsClient;
     private final ParticipationRequestMapper participationRequestMapper;
+    private final LocationTypeRepository locationTypeRepository;
 
     @Value("${app.name}")
     private String app;
@@ -55,7 +50,12 @@ public class EventServiceImpl implements EventService {
     public EventFullDto initiatorAddEvent(long userId, NewEventDto newEventDto) {
         User initiator = userRepository.findUserById(userId);
         Category category = categoryRepository.findCategoryById(newEventDto.getCategory());
-        Event event = eventMapper.toModel(newEventDto, category, initiator);
+        Long locationTypeId = newEventDto.getLocation().getType();
+        LocationType locationType = locationTypeId == null
+                ? null
+                : locationTypeRepository.findLocationTypeById(locationTypeId);
+        Location location = locationMapper.toModel(newEventDto.getLocation(), locationType);
+        Event event = eventMapper.toModel(newEventDto, initiator, category, location);
         Event savedEvent = eventRepository.save(event);
         List<EventFullDto> eventFullDtoList = mapToEventFullDto(List.of(savedEvent));
         return eventFullDtoList.isEmpty() ? null : eventFullDtoList.get(0);
@@ -127,16 +127,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> findEvents(EventPublicFilterDto filter) {
-        LocalDateTime rangeStart = filter.getRangeStart();
+        validateCoordinates(filter.getLatitude(), filter.getLongitude());
+
+        LocalDateTime rangeStart = getValidRangeStart(filter.getRangeStart());
         LocalDateTime rangeEnd = filter.getRangeEnd();
 
-        if (rangeStart == null) {
-            rangeStart = LocalDateTime.now();
-        }
+        validateDateRange(rangeStart, rangeEnd);
 
-        if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
-            throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
-        }
         PageRequest page = PageRequestHelper.of(filter.getFrom(), filter.getSize());
         List<Event> events = eventRepository.findAllByFilter(
                 filter.getText(),
@@ -145,12 +142,16 @@ public class EventServiceImpl implements EventService {
                 rangeStart,
                 rangeEnd,
                 filter.isOnlyAvailable(),
-                page);
+                filter.getLatitude(),
+                filter.getLongitude(),
+                filter.getRadiusInMeters(),
+                page
+        );
 
         sendToStats(filter.getUri(), filter.getIp());
-
         return mapToEventShortDto(events, filter.getSort());
     }
+
 
     @Override
     public List<EventFullDto> adminFindEvents(EventAdminFilterDto filter) {
@@ -244,6 +245,25 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         statsClient.createHit(endpointHitRequestDto);
+    }
+
+    private void validateCoordinates(Float latitude, Float longitude) {
+        if ((latitude == null && longitude != null) || (latitude != null && longitude == null)) {
+            throw new BadRequestException("Incorrect latitude or longitude value");
+        }
+    }
+
+    private LocalDateTime getValidRangeStart(LocalDateTime rangeStart) {
+        if (rangeStart == null) {
+            return LocalDateTime.now();
+        }
+        return rangeStart;
+    }
+
+    private void validateDateRange(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+        if (rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
+            throw new PeriodValidationException("RangeStart cannot be later than rangeEnd");
+        }
     }
 
     private List<ParticipationRequestDto> processParticipationRequests(List<ParticipationRequest> oldRequests, boolean isConfirmation) {
@@ -359,7 +379,11 @@ public class EventServiceImpl implements EventService {
         }
 
         if (patch.getLocation() != null) {
-            eventBuilder.location(locationMapper.toModel(patch.getLocation()));
+            NewLocationDto newLocationDto = patch.getLocation();
+            LocationType locationType = newLocationDto.getType() == null
+                    ? null :
+                    locationTypeRepository.findLocationTypeById(newLocationDto.getType());
+            eventBuilder.location(locationMapper.toModel(newLocationDto, locationType));
         }
 
         if (patch.getPaid() != null) {

@@ -5,4 +5,5 @@ public class Constant {
     public static final String PAGE_DEFAULT_FROM = "0";
     public static final String PAGE_DEFAULT_SIZE = "10";
     public static final String SORT_DEFAULT = "ID";
+    public static final String LOCATION_SEARCH_RADIUS_IN_METERS = "10000";
 }

@@ -14,6 +14,6 @@ public interface CategoryMapper {
 
     List<CategoryDto> toDto(List<Category> category);
 
-    @Mapping(target = "id", expression = "java(null)")
+    @Mapping(target = "id", ignore = true)
     Category toModel(NewCategoryDto categoryDto);
 }

@@ -11,7 +11,7 @@ public interface UpdateEventDto {
 
     LocalDateTime getEventDate();
 
-    LocationDto getLocation();
+    NewLocationDto getLocation();
 
     Boolean getPaid();
 

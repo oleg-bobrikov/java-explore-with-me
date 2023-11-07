@@ -25,4 +25,7 @@ public class EventPublicFilterDto {
     private Event.Sort sort;
     private int from;
     private int size;
+    private Float latitude;
+    private Float longitude;
+    private int radiusInMeters;
 }
